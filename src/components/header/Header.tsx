@@ -1,9 +1,13 @@
 import { Avatar, AvatarFallback } from "../ui/avatar"
+import { transactions } from "@/data/transactions"
 
 const Header = () => {
     const name = "Rupan";
-    const amount = 100;
-    const raised = 0;
+    const amount = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+    const raised = transactions
+        .filter((transaction) => transaction.amount > 0)
+        .reduce((sum, transaction) => sum + transaction.amount, 0);
+
     return (
         <div className="w-full bg-[#14233f] flex justify-between flex-wrap px-7 p-5 text-gray-200 rounded-bl-3xl rounded-br-3xl">
             <h2 className="text-amber-400">DABBA FUND</h2>
@@ -18,7 +22,7 @@ const Header = () => {
                 <div>in the fund right now</div>
                 <div className="flex gap-5 justify-start text-gray-400 text-lg">
                     <span>₹{raised} raised</span>
-                    <span>₹{raised} spent</span>
+                    <span>₹0 spent</span>
                 </div>
             </div>
         </div>

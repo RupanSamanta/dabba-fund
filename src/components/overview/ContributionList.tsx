@@ -23,12 +23,12 @@ export const ContributionList: React.FC<ContributionListProps> = ({
             </h3>
 
             {/* Main Container Card */}
-            <Card className="bg-[#f4efe4] border-[#e2d9c8] text-[#2c2825] rounded-2xl overflow-hidden m-auto py-0 gap-0">
-                <CardContent className="p-0 divide-y divide-[#e2d9c8]">
+            <Card className="bg-[#efe7d8] text-[#2c2825] rounded-2xl overflow-hidden m-auto py-0 gap-0">
+                <CardContent className="p-0 divide-y divide-[#e2d9c8] gap-0">
                     {contributors.map((person) => (
                         <div
                             key={person.id}
-                            className="flex items-center justify-between p-4 transition-colors hover:bg-[#ebd9c8]/30"
+                            className="flex items-center justify-between p-4 py-6 transition-colors bg-[#ebd9c8]/30 hover:bg-[#ebd9c8]/60"
                         >
                             {/* Left Side: Avatar + Details */}
                             <div className="flex items-center gap-3">
@@ -68,7 +68,7 @@ export const ContributionList: React.FC<ContributionListProps> = ({
                             </div>
 
                             {/* Right Side: Currency Amount */}
-                            <div className="text-lg font-semibold text-[#1c1917]">
+                            <div className="text-xl font-semibold text-[#1c1917]">
                                 {person.currencySymbol || "₹"}
                                 {person.amount}
                             </div>
@@ -77,7 +77,7 @@ export const ContributionList: React.FC<ContributionListProps> = ({
                 </CardContent>
 
                 {/* Dynamic Footer */}
-                <CardFooter className="p-4 pt-3 text-sm text-[#78716c] border-t border-[#e2d9c8]/60 bg-[#f4efe4]">
+                <CardFooter className="p-4 pt-3 text-sm text-[#78716c] border-t border-[#e2d9c8]/60">
                     New face? Ask {adminName} to add them.
                 </CardFooter>
             </Card>
