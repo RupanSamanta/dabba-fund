@@ -130,13 +130,14 @@
 }
 
 #root {
-  width: 700px;
+  width: 500px;
   max-width: 100%;
   min-height: 100svh;
   position: relative;
   margin: 0 auto;
   text-align: center;
   box-sizing: border-box;
+  background-color: #f8f3e8;
 }
 
 html {
