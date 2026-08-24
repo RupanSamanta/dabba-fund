@@ -14,7 +14,7 @@ const Header = () => {
                 <span>{name}</span>
             </div>
             <div className="w-full space-y-3 mt-3 font-light text-left">
-                <h3 className="text-5xl font-normal">₹{amount}</h3>
+                <h1 className="text-5xl font-normal">₹{amount}</h1>
                 <div>in the fund right now</div>
                 <div className="flex gap-5 justify-start text-gray-400 text-lg">
                     <span>₹{raised} raised</span>

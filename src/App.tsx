@@ -8,6 +8,7 @@ function App() {
     <>
       <Header />
       <Routes>
+        <Route path="/" element={<Overview />}/>
         <Route path="/overview" element={<Overview />}/>
       </Routes>
       <Footer />

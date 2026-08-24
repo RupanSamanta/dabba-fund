@@ -13,17 +13,17 @@ interface ContributionListProps {
 export const ContributionList: React.FC<ContributionListProps> = ({
     title = "WHO'S PUT IN WHAT",
     contributors,
-    adminName = "Arpan",
+    adminName = "Rupan",
 }) => {
     return (
-        <div className="w-full max-w-md space-y-3 font-sans">
+        <div className="w-full space-y-3 p-5">
             {/* Section Header */}
-            <h3 className="text-xs font-bold tracking-wider text-[#8b8374] uppercase px-1">
+            <h3 className="text-left font-bold tracking-wider text-[#8b8374] uppercase px-1">
                 {title}
             </h3>
 
             {/* Main Container Card */}
-            <Card className="bg-[#f4efe4] border-[#e2d9c8] text-[#2c2825] shadow-sm rounded-2xl overflow-hidden">
+            <Card className="bg-[#f4efe4] border-[#e2d9c8] text-[#2c2825] rounded-2xl overflow-hidden m-auto py-0 gap-0">
                 <CardContent className="p-0 divide-y divide-[#e2d9c8]">
                     {contributors.map((person) => (
                         <div
