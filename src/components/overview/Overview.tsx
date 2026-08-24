@@ -1,9 +1,13 @@
 import ContributionList from "./ContributionList"
 import { defaultContributors } from "@/data/contributors"
 
-const Overview = () => {
+type OverviewProps = {
+  currentContributorId: string | null
+}
+
+const Overview = ({ currentContributorId }: OverviewProps) => {
   return (
-    <ContributionList contributors={defaultContributors} />
+    <ContributionList contributors={defaultContributors} currentContributorId={currentContributorId} />
   )
 }
 

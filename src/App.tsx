@@ -5,24 +5,36 @@ import Ledger from "./components/ledger/Ledger"
 import Purchases from "./components/purchases/Purchases"
 import LoginPage from "./components/auth/LoginPage"
 import SignupPage from "./components/auth/SignupPage"
+import { defaultContributors } from "./data/contributors"
 import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 import { useState } from "react"
 
 const AUTH_STORAGE_KEY = "dabba-fund-authenticated"
+const AUTH_CONTRIBUTOR_ID_KEY = "dabba-fund-contributor-id"
 
 function App() {
+  const getSavedContributorId = () => localStorage.getItem(AUTH_CONTRIBUTOR_ID_KEY)
+  const isSavedContributorValid = (contributorId: string | null) =>
+    defaultContributors.some((contributor) => contributor.id === contributorId)
+
+  const [currentContributorId, setCurrentContributorId] = useState(() => {
+    const savedContributorId = getSavedContributorId()
+    return isSavedContributorValid(savedContributorId) ? savedContributorId : null
+  })
   const [isAuthenticated, setIsAuthenticated] = useState(
-    () => localStorage.getItem(AUTH_STORAGE_KEY) === "true",
+    () => localStorage.getItem(AUTH_STORAGE_KEY) === "true" && currentContributorId !== null,
   )
   const location = useLocation()
   const isAuthRoute = location.pathname === "/login" || location.pathname === "/signup"
 
-  const handleLogin = () => {
+  const handleLogin = (contributorId: string) => {
     localStorage.setItem(AUTH_STORAGE_KEY, "true")
+    localStorage.setItem(AUTH_CONTRIBUTOR_ID_KEY, contributorId)
+    setCurrentContributorId(contributorId)
     setIsAuthenticated(true)
   }
 
-  const dashboard = isAuthenticated ? <Overview /> : <Navigate to="/login" replace />
+  const dashboard = isAuthenticated ? <Overview currentContributorId={currentContributorId} /> : <Navigate to="/login" replace />
   const protectedLedger = isAuthenticated ? <Ledger /> : <Navigate to="/login" replace />
   const protectedPurchases = isAuthenticated ? <Purchases /> : <Navigate to="/login" replace />
   const loginPage = isAuthenticated ? <Navigate to="/" replace /> : <LoginPage onLogin={handleLogin} />
@@ -30,7 +42,7 @@ function App() {
 
   return (
     <>
-      {!isAuthRoute && isAuthenticated && <Header />}
+      {!isAuthRoute && isAuthenticated && <Header currentContributorId={currentContributorId} />}
       <Routes>
         <Route path="/" element={dashboard} />
         <Route path="/overview" element={dashboard} />

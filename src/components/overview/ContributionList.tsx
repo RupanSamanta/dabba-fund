@@ -7,12 +7,14 @@ import type { Contributor } from "@/types/contributor"
 interface ContributionListProps {
     title?: string;
     contributors: Contributor[];
+    currentContributorId: string | null;
     adminName?: string;
 }
 
 export const ContributionList: React.FC<ContributionListProps> = ({
     title = "WHO'S PUT IN WHAT",
     contributors,
+    currentContributorId,
     adminName = "Rupan",
 }) => {
     return (
@@ -43,7 +45,7 @@ export const ContributionList: React.FC<ContributionListProps> = ({
                                     <div className="flex items-center gap-2">
                                         <span className="font-semibold text-base text-[#1c1917]">
                                             {person.name}
-                                            {person.isCurrentUser && (
+                                            {person.id === currentContributorId && (
                                                 <span className="font-normal text-[#44403c] ml-1">(you)</span>
                                             )}
                                         </span>

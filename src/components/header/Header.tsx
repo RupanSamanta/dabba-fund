@@ -1,8 +1,17 @@
 import { Avatar, AvatarFallback } from "../ui/avatar"
+import { defaultContributors } from "@/data/contributors"
 import { transactions } from "@/data/transactions"
 
-const Header = () => {
-    const name = "Rupan";
+type HeaderProps = {
+    currentContributorId: string | null
+}
+
+const Header = ({ currentContributorId }: HeaderProps) => {
+    const currentContributor = defaultContributors.find(
+        (contributor) => contributor.id === currentContributorId,
+    )
+    const name = currentContributor?.name ?? "User";
+    const initials = currentContributor?.initials ?? name[0];
     const amount = transactions.reduce((sum, transaction) => sum + transaction.amount, 0);
     const raised = transactions
         .filter((transaction) => transaction.amount > 0)
@@ -13,7 +22,9 @@ const Header = () => {
             <h2 className="text-amber-400">DABBA FUND</h2>
             <div className="flex items-center gap-2 text-sm p-1 pr-2 border-[0.05rem] border-gray-300 bg-gray-500/10 rounded-full">
                 <Avatar size="sm">
-                    <AvatarFallback>{name[0]}</AvatarFallback>
+                    <AvatarFallback className={currentContributor?.avatarBgColor}>
+                        {initials}
+                    </AvatarFallback>
                 </Avatar>
                 <span>{name}</span>
             </div>

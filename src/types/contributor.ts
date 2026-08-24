@@ -1,5 +1,6 @@
 export interface Contributor {
     id: string;
+    email: string;
     name: string;
     fullname: string;
     initials: string;

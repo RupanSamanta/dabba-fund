@@ -1,7 +1,9 @@
 import { useState } from "react"
+import { Eye, EyeOff } from "lucide-react"
 import { Link } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
+import { defaultContributors } from "@/data/contributors"
 import {
   Card,
   CardContent,
@@ -11,12 +13,13 @@ import {
 } from "@/components/ui/card"
 
 type LoginPageProps = {
-  onLogin: () => void
+  onLogin: (contributorId: string) => void
 }
 
 const LoginPage = ({ onLogin }: LoginPageProps) => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -27,8 +30,17 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
       return
     }
 
-    localStorage.setItem("dabba-fund-user-email", email.trim())
-    onLogin()
+    const normalizedEmail = email.trim().toLowerCase()
+    const contributor = defaultContributors.find(
+      (person) => person.email.toLowerCase() === normalizedEmail && person.id === password.trim(),
+    )
+
+    if (!contributor) {
+      setError("Invalid email or password.")
+      return
+    }
+
+    onLogin(contributor.id)
   }
 
   return (
@@ -67,15 +79,25 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
                     Password
                   </label>
                 </div>
-                <input
-                  id="login-password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="Password"
-                  required
-                  className="h-11 w-full rounded-xl border border-[#d8c7ad] bg-white px-3 text-sm text-[#1c1917] outline-none transition focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
-                />
+                <div className="relative">
+                  <input
+                    id="login-password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Password"
+                    required
+                    className="h-11 w-full rounded-xl border border-[#d8c7ad] bg-white px-3 pr-11 text-sm text-[#1c1917] outline-none transition focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
+                  />
+                  <button
+                    type="button"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    onClick={() => setShowPassword((value) => !value)}
+                    className="absolute inset-y-0 right-0 flex h-11 w-11 items-center justify-center rounded-r-xl text-[#5f5b55] transition hover:text-[#1c1917] focus:outline-none focus:ring-2 focus:ring-[#b08238]/20"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
 
               {error && <p className="text-sm text-red-600">{error}</p>}
