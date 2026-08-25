@@ -13,15 +13,15 @@ export const defaultContributors: Contributor[] = [
     avatarBgColor: "bg-[#b08238] text-white border-2 border-[#b08238]",
     subtext: ""
   },
-  // {
-  //   id: "20050103",
-  //   email: "arpan@dabba.fund",
-  //   name: "Arpan",
-  //   fullname: "Arpan Purkait",
-  //   initials: "AR",
-  //   amount: 50,
-  //   isAdmin: false,
-  //   avatarBgColor: "bg-[#457b5d] text-white",
-  //   subtext: ""
-  // }
+  {
+    id: "20050711",
+    email: "souvagyasarkar9@gmail.com",
+    name: "Souvagya",
+    fullname: "Souvagya Sarkar",
+    initials: "SS",
+    amount: 50,
+    isAdmin: false,
+    avatarBgColor: "bg-[#f5fb5d] text-white",
+    subtext: ""
+  }
 ];
