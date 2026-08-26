@@ -1,6 +1,7 @@
 import type { Transaction } from "@/types/transaction"
 import { defaultContributors } from "@/data/contributors"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import {
     Card,
     CardContent,
@@ -31,6 +32,18 @@ const formatTransactionDate = (date: Date) => {
     return date.toLocaleDateString();
 };
 
+const getTransactionTypeLabel = (type: Transaction["type"]) => {
+    if (type === "addition") {
+        return "Addition";
+    }
+
+    if (type === "purchase") {
+        return "Purchase";
+    }
+
+    return "Withdraw";
+};
+
 const LedgerList = ({ transactions }: LedgerListProps) => {
     return (
         <section className="w-full space-y-3 p-5">
@@ -44,6 +57,9 @@ const LedgerList = ({ transactions }: LedgerListProps) => {
                         const contributor = defaultContributors.find(
                             (person) => person.id === transaction.userId
                         );
+                        const isAddition = transaction.type === "addition";
+                        const amountPrefix = isAddition ? "+" : "-";
+                        const amountColor = isAddition ? "text-emerald-700" : "text-red-600";
 
                         return (
                             <div
@@ -59,17 +75,25 @@ const LedgerList = ({ transactions }: LedgerListProps) => {
                                     </Avatar>
 
                                     <div className="text-left">
-                                        <p className="font-semibold text-[#1c1917]">
-                                            {contributor?.name ?? transaction.userId}
-                                        </p>
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            <p className="font-semibold text-[#1c1917]">
+                                                {contributor?.name ?? transaction.userId}
+                                            </p>
+                                            <Badge
+                                                variant="outline"
+                                                className="h-5 rounded-sm border-[#d8c7ad] bg-white/40 px-1.5 py-0 text-[10px] font-mono uppercase tracking-widest text-[#5f5b55]"
+                                            >
+                                                {getTransactionTypeLabel(transaction.type)}
+                                            </Badge>
+                                        </div>
                                         <p className="text-sm text-[#78716c]">
                                             {formatTransactionDate(transaction.date)}
                                         </p>
                                     </div>
                                 </div>
 
-                                <p className="text-xl font-semibold text-[#1c1917]">
-                                    ₹{transaction.amount}
+                                <p className={`text-xl font-semibold ${amountColor}`}>
+                                    {amountPrefix}₹{Math.abs(transaction.amount)}
                                 </p>
                             </div>
                         );

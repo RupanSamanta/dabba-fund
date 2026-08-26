@@ -20,7 +20,7 @@ export const defaultContributors: Contributor[] = [
     initials: "SS",
     amount: 0,
     isAdmin: false,
-    avatarBgColor: "bg-[#f5fb5d] text-white",
+    avatarBgColor: "bg-[#966117] text-white",
     subtext: ""
   } ,
   {
@@ -31,7 +31,18 @@ export const defaultContributors: Contributor[] = [
     initials: "AP",
     amount: 50,
     isAdmin: false,
-    avatarBgColor: "bg-[#f5fb5d] text-white",
+    avatarBgColor: "bg-[#36800f] text-white",
+    subtext: ""
+  } ,
+  {
+    id: "20021524",
+    email: "subhradeepkanji62@gmail.com",
+    name: "Subhradeep",
+    fullname: "Subhradeep Kanji",
+    initials: "SK",
+    amount: 0,
+    isAdmin: false,
+    avatarBgColor: "bg-[#5b7a06] text-white",
     subtext: ""
   }
 ];
