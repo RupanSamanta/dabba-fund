@@ -90,75 +90,75 @@ const LoginPage = () => {
               </div>
             </CardHeader>
 
-          <CardContent>
-            <form className="space-y-5" onSubmit={handleSubmit}>
-              <div className="space-y-2 text-left">
-                <label className="block w-full text-sm font-medium text-[#2c2825]" htmlFor="login-email">
-                  Email
-                </label>
-                <input
-                  id="login-email"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
-                />
-              </div>
-
-              <div className="space-y-2 text-left">
-                <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-[#2c2825]" htmlFor="login-password">
-                    Password
+            <CardContent>
+              <form className="space-y-5" onSubmit={handleSubmit}>
+                <div className="space-y-2 text-left">
+                  <label className="block w-full text-sm font-medium text-[#2c2825]" htmlFor="login-email">
+                    Email
                   </label>
-                </div>
-                <div className="relative">
                   <input
-                    id="login-password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(event) => setPassword(event.target.value)}
-                    placeholder="Password"
+                    id="login-email"
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="you@example.com"
                     required
-                    className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 pr-11 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
+                    className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
                   />
-                  <button
-                    type="button"
-                    aria-label={showPassword ? "Hide password" : "Show password"}
-                    onClick={() => setShowPassword((value) => !value)}
-                    className="absolute inset-y-0 right-0 flex h-12 w-12 items-center justify-center rounded-r-xl text-[#5f5b55] transition hover:text-[#1c1917] focus:outline-none focus:ring-2 focus:ring-[#b08238]/20"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
                 </div>
-              </div>
 
-              {error && (
-                <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-left text-sm text-red-700">
-                  {error}
-                </p>
-              )}
+                <div className="space-y-2 text-left">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-[#2c2825]" htmlFor="login-password">
+                      Password
+                    </label>
+                  </div>
+                  <div className="relative">
+                    <input
+                      id="login-password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      placeholder="Password"
+                      required
+                      className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 pr-11 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
+                    />
+                    <button
+                      type="button"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      onClick={() => setShowPassword((value) => !value)}
+                      className="absolute inset-y-0 right-0 flex h-12 w-12 items-center justify-center rounded-r-xl text-[#5f5b55] transition hover:text-[#1c1917] focus:outline-none focus:ring-2 focus:ring-[#b08238]/20"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
 
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-                size="lg"
-                className="h-12 w-full gap-2 rounded-xl bg-[#251d17] text-[#fff8ec] shadow-lg shadow-[#251d17]/15 hover:cursor-pointer hover:bg-[#3a2a20]"
-              >
-                {isSubmitting ? "Logging in..." : "Log in"}
-                <ArrowRight size={17} />
-              </Button>
-            </form>
+                {error && (
+                  <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-left text-sm text-red-700">
+                    {error}
+                  </p>
+                )}
 
-            <p className="mt-6 text-center text-sm text-[#665747]">
-              Don&apos;t have an account?{" "}
-              <Link to="/signup" className="font-semibold text-[#251d17] hover:underline">
-                Sign up
-              </Link>
-            </p>
-          </CardContent>
-        </Card>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting}
+                  size="lg"
+                  className="h-12 w-full gap-2 rounded-xl bg-[#251d17] text-[#fff8ec] shadow-lg shadow-[#251d17]/15 hover:cursor-pointer hover:bg-[#3a2a20]"
+                >
+                  {isSubmitting ? "Logging in..." : "Log in"}
+                  <ArrowRight size={17} />
+                </Button>
+              </form>
+
+              <p className="mt-6 text-center text-sm text-[#665747]">
+                Don&apos;t have an account?{" "}
+                <Link to="/signup" className="font-semibold text-[#251d17] hover:underline">
+                  Sign up
+                </Link>
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </section>
     </main>

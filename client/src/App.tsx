@@ -10,13 +10,12 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 import { useAuth } from "./context/useAuth"
 
 function App() {
-  const { authData, isAuthenticated } = useAuth()
-  const currentContributorId = authData?.id ?? null
+  const { isAuthenticated } = useAuth()
   const location = useLocation()
   const isAuthRoute = location.pathname === "/login" || location.pathname === "/signup"
 
-  const homePage = isAuthenticated ? <Overview currentContributorId={currentContributorId} /> : <Home />
-  const dashboard = isAuthenticated ? <Overview currentContributorId={currentContributorId} /> : <Navigate to="/" replace />
+  const homePage = isAuthenticated ? <Overview /> : <Home />
+  const dashboard = isAuthenticated ? <Overview /> : <Navigate to="/" replace />
   const protectedLedger = isAuthenticated ? <Ledger /> : <Navigate to="/login" replace />
   const protectedPurchases = isAuthenticated ? <Purchases /> : <Navigate to="/login" replace />
   const loginPage = isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />

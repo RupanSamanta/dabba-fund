@@ -1,8 +1,7 @@
-import axios from "axios"
 import { useState, type ReactNode } from "react"
 import { AuthContext, type AuthData, type SignupData } from "./auth-context"
+import { api } from "@/lib/api"
 
-const API_URL = "http://localhost:8888"
 const AUTH_STORAGE_KEY = "dabba-fund-auth-data"
 
 const getSavedAuthData = (): AuthData | null => {
@@ -30,7 +29,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signup = async (data: SignupData) => {
     setIsLoading(true)
     try {
-      const response = await axios.post<AuthData>(`${API_URL}/auth/signup`, data)
+      const response = await api.post<AuthData>("/auth/signup", data)
       saveAuthData(response.data)
     } finally {
       setIsLoading(false)
@@ -40,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true)
     try {
-      const response = await axios.post<AuthData>(`${API_URL}/auth/signin`, {
+      const response = await api.post<AuthData>("/auth/signin", {
         email,
         password,
       })

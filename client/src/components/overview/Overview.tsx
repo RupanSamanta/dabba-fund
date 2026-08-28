@@ -1,14 +1,23 @@
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/useAuth"
+import { api } from "@/lib/api";
 import ContributionList from "./ContributionList"
-import { defaultContributors } from "@/data/contributors"
+import type { Contributor } from "@/types/contributor";
 
-type OverviewProps = {
-  currentContributorId: string | null
-}
+const Overview = () => {
+    const { authData } = useAuth();
+    const [contributors, setContributors] = useState<Contributor[]>([]);
 
-const Overview = ({ currentContributorId }: OverviewProps) => {
-  return (
-    <ContributionList contributors={defaultContributors} currentContributorId={currentContributorId} />
-  )
+    useEffect(() => {
+        const fetchContributors = async () => {
+            const result = await api.get<Contributor[]>("/api/users");
+            setContributors(result.data);
+        }
+        fetchContributors();
+    }, []);
+    return (
+        <ContributionList contributors={contributors} currentContributorId={authData?.id??""} />
+    )
 }
 
 export default Overview

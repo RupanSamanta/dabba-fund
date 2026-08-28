@@ -4,9 +4,9 @@ import { transactions } from "@/data/transactions"
 import { useAuth } from "@/context/useAuth"
 
 const Header = () => {
-    const { authData } = useAuth()
+    const { authData } = useAuth();
     const name = authData ? `${authData.firstname} ${authData.lastname}` : "User";
-    const initials = `${authData?.firstname[0] ?? "U"}${authData?.lastname[0] ?? ""}`;
+    const initials = `${authData?.firstname[0] ?? "U"}${authData?.firstname[1] ?? ""}`.toUpperCase();
     const amount = transactions.reduce((sum, transaction) => {
         const signedAmount = transaction.type === "addition" ? Math.abs(transaction.amount) : -Math.abs(transaction.amount);
         return sum + signedAmount;

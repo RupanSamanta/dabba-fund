@@ -85,6 +85,22 @@ app.post("/auth/signin", (req, res) => {
     });
 });
 
+app.get("/api/users", (req, res) => {
+    db.query(`SELECT u.id, u.first_name as firstname, u.last_name as lastname, u.email,
+            u.is_admin as isAdmin, COALESCE(SUM(t.amount), 0) AS amount
+        FROM users u
+        LEFT JOIN transactions t
+            ON u.id = t.uid
+        GROUP BY u.id, u.first_name, u.last_name, u.email, u.is_admin
+    `, (err, users) => {
+        if (err) {
+            res.status(500).send({ message: err.message });
+        } else {
+            res.send(users);
+        }
+    });
+});
+
 app.listen(8888, () => {
     console.log("Server is running on port 8888");
 });
