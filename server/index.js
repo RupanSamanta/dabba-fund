@@ -101,6 +101,21 @@ app.get("/api/users", (req, res) => {
     });
 });
 
+app.get("/api/transactions", (req, res) => {
+    db.query(`SELECT u.first_name as name, t.tid as id, t.amount, t.type, t.time
+            FROM transactions t
+            INNER JOIN users u
+            ON t.user_id = u.id
+            ORDER BY t.created_at DESC;`,
+        (err, transactions) => {
+            if (err) {
+                res.status(500).send({ message: err.message });
+            } else {
+                res.send(transactions);
+            }
+        });
+})
+
 app.listen(8888, () => {
     console.log("Server is running on port 8888");
 });

@@ -1,11 +1,8 @@
 import type { Transaction } from "@/types/transaction"
 import { defaultContributors } from "@/data/contributors"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import {
-    Card,
-    CardContent,
-} from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 
 interface LedgerListProps {
     transactions: Transaction[];
@@ -50,7 +47,7 @@ const LedgerList = ({ transactions }: LedgerListProps) => {
             <div className="flex items-end justify-between px-1">
                 <div className="text-left">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b08238]">Your activity</p>
-                    <h3 className="mt-1 text-left text-xl font-black tracking-normal text-[#251d17]">Transactions</h3>
+                    <h3 className="mt-1 text-left text-xl font-black tracking-normal uppercase text-[#251d17]">Transactions</h3>
                 </div>
                 <span className="text-xs text-[#8b7a65]">{transactions.length} entries</span>
             </div>
@@ -61,6 +58,12 @@ const LedgerList = ({ transactions }: LedgerListProps) => {
                         const contributor = defaultContributors.find(
                             (person) => person.id === transaction.userId
                         );
+                        const contributorName = contributor
+                            ? `${contributor.firstname} ${contributor.lastname}`
+                            : transaction.userId;
+                        const contributorInitials = contributor
+                            ? `${contributor.firstname[0] ?? ""}${contributor.lastname[0] ?? ""}`
+                            : transaction.userId.slice(0, 2).toUpperCase();
                         const isAddition = transaction.type === "addition";
                         const amountPrefix = isAddition ? "+" : "-";
                         const amountColor = isAddition ? "text-emerald-700" : "text-red-600";
@@ -72,16 +75,15 @@ const LedgerList = ({ transactions }: LedgerListProps) => {
                             >
                                 <div className="flex items-center gap-3">
                                     <Avatar className="h-10 w-10">
-                                        <AvatarImage src={contributor?.avatarUrl} alt={contributor?.name ?? transaction.userId} />
-                                        <AvatarFallback className={contributor?.avatarBgColor || "bg-[#b08238] text-white"}>
-                                            {contributor?.initials ?? transaction.userId.slice(0, 2).toUpperCase()}
+                                        <AvatarFallback className="bg-[#b08238] text-white">
+                                            {contributorInitials}
                                         </AvatarFallback>
                                     </Avatar>
 
                                     <div className="text-left">
                                         <div className="flex flex-wrap items-center gap-2">
                                             <p className="font-semibold text-[#1c1917]">
-                                                {contributor?.name ?? transaction.userId}
+                                                {contributorName}
                                             </p>
                                             <Badge
                                                 variant="outline"

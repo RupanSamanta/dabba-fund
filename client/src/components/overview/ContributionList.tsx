@@ -14,9 +14,12 @@ export const ContributionList = ({ contributors, currentContributorId } : Contri
     return (
         <div className="w-full space-y-3 p-5 pb-28">
             {/* Section Header */}
-            <div className="px-1 text-left">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b08238]">The circle</p>
-                <h3 className="mt-1 text-xl font-black tracking-normal text-[#251d17]">{title}</h3>
+            <div className="flex items-end justify-between px-1">
+                <div className="text-left">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b08238]">The Circle</p>
+                    <h3 className="mt-1 text-left text-xl font-black tracking-normal uppercase text-[#251d17]">{title}</h3>
+                </div>
+                <span className="text-xs text-[#8b7a65]">{contributors.length} entries</span>
             </div>
 
             {/* Main Container Card */}

@@ -1,10 +1,20 @@
-import LedgerList from "./LedgerList"
-import { transactions } from "@/data/transactions"
+import { useEffect, useState } from "react";
+import LedgerList from "./LedgerList";
+import type { Transaction } from "@/types/transaction";
+import { api } from "@/lib/api";
 
 const Ledger = () => {
-  return (
-    <LedgerList transactions={transactions} />
-  )
-}
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
-export default Ledger
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      const result = await api.get<Transaction[]>("/api/transactions");
+      setTransactions(result.data);
+    };
+    fetchTransactions();
+  }, []);
+
+  return <LedgerList transactions={transactions} />;
+};
+
+export default Ledger;
