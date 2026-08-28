@@ -1,9 +1,9 @@
 import { useState } from "react"
 import { ArrowLeft, ArrowRight, Eye, EyeOff, LogIn, WalletCards } from "lucide-react"
-import { Link } from "react-router-dom"
+import axios from "axios"
+import { Link, useNavigate } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
-import { defaultContributors } from "@/data/contributors"
 import {
   Card,
   CardContent,
@@ -11,18 +11,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { useAuth } from "@/context/useAuth"
 
-type LoginPageProps = {
-  onLogin: (contributorId: string) => void
-}
-
-const LoginPage = ({ onLogin }: LoginPageProps) => {
+const LoginPage = () => {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const navigate = useNavigate()
+  const { login } = useAuth()
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     if (!email.trim() || !password.trim()) {
@@ -30,17 +30,19 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
       return
     }
 
-    const normalizedEmail = email.trim().toLowerCase()
-    const contributor = defaultContributors.find(
-      (person) => person.email.toLowerCase() === normalizedEmail && person.id === password.trim(),
-    )
-
-    if (!contributor) {
-      setError("Invalid email or password.")
-      return
+    setIsSubmitting(true)
+    try {
+      await login(email.trim().toLowerCase(), password)
+      navigate("/", { replace: true })
+    } catch (requestError) {
+      if (axios.isAxiosError(requestError)) {
+        setError(requestError.response?.data?.message ?? "Invalid email or password.")
+      } else {
+        setError("Could not log in. Please try again.")
+      }
+    } finally {
+      setIsSubmitting(false)
     }
-
-    onLogin(contributor.id)
   }
 
   return (
@@ -140,10 +142,11 @@ const LoginPage = ({ onLogin }: LoginPageProps) => {
 
               <Button
                 type="submit"
+                disabled={isSubmitting}
                 size="lg"
                 className="h-12 w-full gap-2 rounded-xl bg-[#251d17] text-[#fff8ec] shadow-lg shadow-[#251d17]/15 hover:cursor-pointer hover:bg-[#3a2a20]"
               >
-                Log in
+                {isSubmitting ? "Logging in..." : "Log in"}
                 <ArrowRight size={17} />
               </Button>
             </form>

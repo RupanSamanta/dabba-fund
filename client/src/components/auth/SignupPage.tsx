@@ -1,9 +1,10 @@
+import axios from "axios";
 import { useState } from "react"
-import { ArrowLeft, ArrowRight, UserPlus, WalletCards } from "lucide-react"
-import { Link } from "react-router-dom"
-
+import { Link, useNavigate } from "react-router-dom"
+import { ArrowLeft, ArrowRight, Eye, EyeOff, UserPlus, WalletCards } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useAuth } from "@/context/useAuth"
 
 const SignupPage = () => {
     const [formData, setFormData] = useState({
@@ -13,7 +14,12 @@ const SignupPage = () => {
         password: "",
         confirmPassword: "",
     });
-    const [error, setError] = useState("")
+    const [error, setError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const navigate = useNavigate();
+    const { signup } = useAuth();
 
     const handleChange = (field: keyof typeof formData, value: string) => {
         setFormData((prev) => ({ ...prev, [field]: value }));
@@ -26,6 +32,27 @@ const SignupPage = () => {
         if (formData.password !== formData.confirmPassword) {
             setError("Passwords do not match.");
             return;
+        }
+
+        const signUpData = {
+            firstname: formData.firstname,
+            lastname: formData.lastname,
+            email: formData.email,
+            password: formData.password,
+        };
+
+        setIsSubmitting(true);
+        try {
+            await signup(signUpData);
+            navigate("/", { replace: true });
+        } catch (requestError) {
+            if (axios.isAxiosError(requestError)) {
+                setError(requestError.response?.data?.message ?? "Could not create your account.");
+            } else {
+                setError("Could not create your account.");
+            }
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -82,6 +109,7 @@ const SignupPage = () => {
                                     </label>
                                     <input
                                         id="signup-firstname"
+                                        name="firstname"
                                         type="text"
                                         value={formData.firstname}
                                         onChange={(event) => handleChange("firstname", event.target.value)}
@@ -97,6 +125,7 @@ const SignupPage = () => {
                                     </label>
                                     <input
                                         id="signup-lastname"
+                                        name="lastname"
                                         type="text"
                                         value={formData.lastname}
                                         onChange={(event) => handleChange("lastname", event.target.value)}
@@ -112,6 +141,7 @@ const SignupPage = () => {
                                     </label>
                                     <input
                                         id="signup-email"
+                                        name="email"
                                         type="email"
                                         value={formData.email}
                                         onChange={(event) => handleChange("email", event.target.value)}
@@ -125,32 +155,54 @@ const SignupPage = () => {
                                     <label className="block text-sm font-medium text-[#2c2825]" htmlFor="signup-password">
                                         Password
                                     </label>
-                                    <input
-                                        id="signup-password"
-                                        type="password"
-                                        value={formData.password}
-                                        onChange={(event) => handleChange("password", event.target.value)}
-                                        placeholder="Create a password"
-                                        required
-                                        minLength={6}
-                                        className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            id="signup-password"
+                                            name="password"
+                                            type={showPassword ? "text" : "password"}
+                                            value={formData.password}
+                                            onChange={(event) => handleChange("password", event.target.value)}
+                                            placeholder="Create a password"
+                                            required
+                                            minLength={6}
+                                            className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 pr-11 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
+                                        />
+                                        <button
+                                            type="button"
+                                            aria-label={showPassword ? "Hide password" : "Show password"}
+                                            onClick={() => setShowPassword((value) => !value)}
+                                            className="absolute inset-y-0 right-0 flex h-12 w-12 items-center justify-center rounded-r-xl text-[#5f5b55] transition hover:text-[#1c1917] focus:outline-none focus:ring-2 focus:ring-[#b08238]/20"
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="space-y-2 text-left">
                                     <label className="block text-sm font-medium text-[#2c2825]" htmlFor="signup-confirm-password">
                                         Confirm password
                                     </label>
-                                    <input
-                                        id="signup-confirm-password"
-                                        type="password"
-                                        value={formData.confirmPassword}
-                                        onChange={(event) => handleChange("confirmPassword", event.target.value)}
-                                        placeholder="Re-enter your password"
-                                        required
-                                        minLength={6}
-                                        className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            id="signup-confirm-password"
+                                            name="confirm-password"
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            value={formData.confirmPassword}
+                                            onChange={(event) => handleChange("confirmPassword", event.target.value)}
+                                            placeholder="Re-enter your password"
+                                            required
+                                            minLength={6}
+                                            className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 pr-11 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
+                                        />
+                                        <button
+                                            type="button"
+                                            aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
+                                            onClick={() => setShowConfirmPassword((value) => !value)}
+                                            className="absolute inset-y-0 right-0 flex h-12 w-12 items-center justify-center rounded-r-xl text-[#5f5b55] transition hover:text-[#1c1917] focus:outline-none focus:ring-2 focus:ring-[#b08238]/20"
+                                        >
+                                            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {error && (
@@ -161,10 +213,12 @@ const SignupPage = () => {
 
                                 <Button
                                     type="submit"
+                                    name="submit"
+                                    disabled={isSubmitting}
                                     size="lg"
                                     className="h-12 w-full gap-2 rounded-xl bg-[#251d17] text-[#fff8ec] shadow-lg shadow-[#251d17]/15 hover:cursor-pointer hover:bg-[#3a2a20] disabled:cursor-not-allowed disabled:opacity-70"
                                 >
-                                    Sign Up
+                                    {isSubmitting ? "Creating account..." : "Sign Up"}
                                     <ArrowRight size={17} />
                                 </Button>
                             </form>

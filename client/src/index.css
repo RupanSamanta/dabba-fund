@@ -137,7 +137,10 @@
   margin: 0 auto;
   text-align: center;
   box-sizing: border-box;
-  background-color: #f8f3e8;
+  background:
+      linear-gradient(135deg, rgba(250, 247, 238, .9), transparent 48%),
+      repeating-linear-gradient(135deg, rgba(39, 79, 60, .035) 0, rgba(39, 79, 60, .035) 1px, transparent 1px, transparent 10px),
+      #f8f3e8;
 }
 
 html {

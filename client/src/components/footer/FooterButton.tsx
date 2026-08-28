@@ -6,9 +6,9 @@ interface ButtonProps {
 
 const FooterButton = ({ Icon, label, isActive }: ButtonProps) => {
   return (
-    <div className={`flex flex-col items-center gap-2 ${isActive ? "font-bold text-white" : "text-gray-400"}`}>
-        <Icon strokeWidth={isActive ? 1.5 : 1} />
-        <span>{label}</span>
+    <div className={`flex flex-col items-center gap-1.5 rounded-xl px-4 py-1 transition-colors ${isActive ? "font-bold text-[#e6c37b]" : "text-[#9f907b]"}`}>
+      <Icon size={19} strokeWidth={isActive ? 2 : 1.5} />
+      <span className="text-xs">{label}</span>
     </div>
   )
 }

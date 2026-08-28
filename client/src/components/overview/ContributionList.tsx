@@ -18,19 +18,20 @@ export const ContributionList: React.FC<ContributionListProps> = ({
     adminName = "Rupan",
 }) => {
     return (
-        <div className="w-full space-y-3 p-5">
+        <div className="w-full space-y-3 p-5 pb-28">
             {/* Section Header */}
-            <h3 className="text-left font-bold tracking-wider text-[#8b8374] uppercase px-1">
-                {title}
-            </h3>
+            <div className="px-1 text-left">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b08238]">The circle</p>
+                <h3 className="mt-1 text-xl font-black tracking-normal text-[#251d17]">{title}</h3>
+            </div>
 
             {/* Main Container Card */}
-            <Card className="bg-[#efe7d8] text-[#2c2825] rounded-2xl overflow-hidden m-auto py-0 gap-0">
+            <Card className="m-auto gap-0 overflow-hidden rounded-2xl border-[#e4d3b6] bg-[#fff8ec] text-[#2c2825] py-0 shadow-md shadow-[#7c4f18]/5">
                 <CardContent className="p-0 divide-y divide-[#e2d9c8] gap-0">
                     {contributors.map((person) => (
                         <div
                             key={person.id}
-                            className="flex items-center justify-between p-4 py-6 transition-colors bg-[#ebd9c8]/30 hover:bg-[#ebd9c8]/60"
+                            className="flex items-center justify-between border-b border-[#eee2cf] bg-white/35 p-4 py-5 transition-colors last:border-b-0 hover:bg-[#f3e7d4]"
                         >
                             {/* Left Side: Avatar + Details */}
                             <div className="flex items-center gap-3">

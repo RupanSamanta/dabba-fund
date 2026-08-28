@@ -11,7 +11,7 @@ const Footer = () => {
     ];
 
     return (
-        <div className="absolute inset-x-0 bottom-0 flex w-full justify-evenly rounded-tl-3xl rounded-tr-3xl bg-[#14233f] p-5 text-sm text-gray-200">
+        <nav className="absolute inset-x-0 bottom-0 z-20 flex w-full justify-evenly rounded-t-[2rem] border-t border-[#3b2b20] bg-[#251d17] px-3 pb-5 pt-4 text-sm text-[#cbbca6] shadow-[0_-10px_30px_rgba(37,29,23,0.12)]" aria-label="Primary navigation">
             {buttonList.map((obj) => (
                 <NavLink key={obj.label} end={obj.label === 'Overview'} to={obj.path} className="flex-1">
                     {({ isActive }) => (
@@ -19,7 +19,7 @@ const Footer = () => {
                     )}
                 </NavLink>
             ))}
-        </div>
+        </nav>
     )
 }
 
