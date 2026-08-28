@@ -3,6 +3,7 @@ import Footer from "./components/footer/Footer"
 import Overview from "./components/overview/Overview"
 import Ledger from "./components/ledger/Ledger"
 import Purchases from "./components/purchases/Purchases"
+import Home from "./components/home/Home"
 import LoginPage from "./components/auth/LoginPage"
 import SignupPage from "./components/auth/SignupPage"
 import { defaultContributors } from "./data/contributors"
@@ -34,7 +35,8 @@ function App() {
     setIsAuthenticated(true)
   }
 
-  const dashboard = isAuthenticated ? <Overview currentContributorId={currentContributorId} /> : <Navigate to="/login" replace />
+  const homePage = isAuthenticated ? <Overview currentContributorId={currentContributorId} /> : <Home />
+  const dashboard = isAuthenticated ? <Overview currentContributorId={currentContributorId} /> : <Navigate to="/" replace />
   const protectedLedger = isAuthenticated ? <Ledger /> : <Navigate to="/login" replace />
   const protectedPurchases = isAuthenticated ? <Purchases /> : <Navigate to="/login" replace />
   const loginPage = isAuthenticated ? <Navigate to="/" replace /> : <LoginPage onLogin={handleLogin} />
@@ -44,13 +46,13 @@ function App() {
     <>
       {!isAuthRoute && isAuthenticated && <Header currentContributorId={currentContributorId} />}
       <Routes>
-        <Route path="/" element={dashboard} />
+        <Route path="/" element={homePage} />
         <Route path="/overview" element={dashboard} />
         <Route path="/ledger" element={protectedLedger} />
         <Route path="/purchases" element={protectedPurchases} />
         <Route path="/login" element={loginPage} />
         <Route path="/signup" element={signupPage} />
-        <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} replace />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!isAuthRoute && isAuthenticated && <Footer />}
     </>

@@ -22,7 +22,7 @@ export const defaultContributors: Contributor[] = [
     isAdmin: false,
     avatarBgColor: "bg-[#966117] text-white",
     subtext: ""
-  } ,
+  },
   {
     id: "20050103",
     email: "arpanpurkait550@gmail.com",

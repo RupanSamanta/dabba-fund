@@ -1,162 +1,185 @@
 import { useState } from "react"
+import { ArrowLeft, ArrowRight, UserPlus, WalletCards } from "lucide-react"
 import { Link } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
-
-const WEB3FORMS_ACCESS_KEY = (import.meta.env.VITE_WEB3FORMS_ACCESS_KEY || "").trim()
-
-type Web3FormsResponse = {
-    success?: boolean
-    message?: string
-    body?: {
-        message?: string
-    }
-}
-
-const getWeb3FormsErrorMessage = (result: Web3FormsResponse) =>
-    result.body?.message || result.message || "Unable to submit your request right now."
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 const SignupPage = () => {
     const [formData, setFormData] = useState({
-        name: "",
+        firstname: "",
+        lastname: "",
         email: "",
-    })
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null)
+        password: "",
+        confirmPassword: "",
+    });
+    const [error, setError] = useState("")
 
     const handleChange = (field: keyof typeof formData, value: string) => {
-        setFormData((prev) => ({ ...prev, [field]: value }))
+        setFormData((prev) => ({ ...prev, [field]: value }));
+        setError("");
     }
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        if (!WEB3FORMS_ACCESS_KEY) {
-            setStatus({
-                type: "error",
-                message: "Web3Forms access key is missing. Add VITE_WEB3FORMS_ACCESS_KEY in your environment before submitting.",
-            })
-            return
+        if (formData.password !== formData.confirmPassword) {
+            setError("Passwords do not match.");
+            return;
         }
-
-        setIsSubmitting(true)
-        setStatus(null)
-
-        try {
-            const form = new FormData(event.currentTarget)
-            form.append("access_key", WEB3FORMS_ACCESS_KEY)
-            form.append("subject", "New Dabba Fund signup request")
-            form.append("from_name", "Dabba Fund App")
-            form.append("message", `New signup request from Dabba Fund.\n\nName: ${formData.name}\nEmail: ${formData.email}\n`)
-            form.append("botcheck", "")
-
-            const response = await fetch("https://api.web3forms.com/submit", {
-                method: "POST",
-                body: form,
-            })
-
-            const result = await response.json() as Web3FormsResponse
-
-            if (!response.ok || result.success !== true) {
-                throw new Error(getWeb3FormsErrorMessage(result))
-            }
-
-            setStatus({
-                type: "success",
-                message: "Your request has been submitted to the admin. They will add your account after review.",
-            })
-            setFormData({ name: "", email: "" })
-        } catch (error) {
-            setStatus({
-                type: "error",
-                message: error instanceof Error ? error.message : "Something went wrong while submitting the request.",
-            })
-        } finally {
-            setIsSubmitting(false)
-        }
-    };
+    }
 
     return (
-        <div className="min-h-[70vh] bg-[#f5efe6] p-6">
-            <div className="mx-auto max-w-md pt-8">
-                <Card className="overflow-hidden rounded-2xl border-0 bg-[#efe7d8] text-[#2c2825] shadow-sm">
-                    <CardHeader className="space-y-2 pb-4">
-                        <CardTitle className="text-2xl font-semibold text-[#1c1917]">
-                            Create account
-                        </CardTitle>
-                        <CardDescription className="text-[#5f5b55]">
-                            Start tracking your group fund and contributions.
-                        </CardDescription>
-                    </CardHeader>
+        <main className="min-h-svh overflow-hidden bg-[#f8f3e8] text-[#251d17]">
+            <section className="relative flex min-h-svh flex-col px-6 py-6">
+                <div className="pointer-events-none absolute inset-0 overflow-hidden">
+                    <div className="absolute -top-20 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-[#d8a03d]/25 blur-3xl" />
+                    <div className="absolute bottom-12 left-8 h-36 w-36 rounded-full bg-[#3f7f6f]/15 blur-3xl" />
+                    <div className="absolute right-0 top-1/3 h-40 w-24 rounded-l-full bg-[#c8553d]/10 blur-2xl" />
+                </div>
 
-                    <CardContent>
-                        <form className="space-y-5" onSubmit={handleSubmit}>
-                            <div className="space-y-2 text-left">
-                                <label className="block text-sm font-medium text-[#2c2825]" htmlFor="signup-name">
-                                    Full name
-                                </label>
-                                <input
-                                    id="signup-name"
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(event) => handleChange("name", event.target.value)}
-                                    placeholder="Your name"
-                                    required
-                                    className="h-11 w-full rounded-xl border border-[#d8c7ad] bg-white px-3 text-sm text-[#1c1917] outline-none transition focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
-                                />
+                <nav className="relative z-10 flex items-center justify-between">
+                    <Link
+                        to="/"
+                        aria-label="Back home"
+                        className="inline-flex size-10 items-center justify-center rounded-xl border border-[#e4d3b6] bg-white/70 text-[#46372b] shadow-sm backdrop-blur transition hover:border-[#b08238] hover:text-[#1c1917] focus:outline-none focus:ring-2 focus:ring-[#b08238]/30"
+                    >
+                        <ArrowLeft size={18} />
+                    </Link>
+
+                    <div className="flex items-center gap-2">
+                        <div className="flex size-10 items-center justify-center rounded-xl bg-[#251d17] text-[#fff8ec] shadow-lg shadow-[#251d17]/15">
+                            <WalletCards size={20} />
+                        </div>
+                        <div className="text-left">
+                            <p className="text-sm font-semibold leading-tight">Dabba Fund</p>
+                            <p className="text-xs text-[#766754]">shared wallet</p>
+                        </div>
+                    </div>
+                </nav>
+
+                <div className="relative z-10 flex flex-1 items-center py-10">
+                    <Card className="mx-auto w-full max-w-md overflow-hidden rounded-[1.5rem] border border-white/60 bg-[#fff8ec]/90 text-[#2c2825] shadow-2xl shadow-[#7c4f18]/10 backdrop-blur">
+                        <CardHeader className="space-y-3 pb-5 text-left">
+                            <div className="flex size-12 items-center justify-center rounded-2xl bg-[#251d17] text-[#fff8ec] shadow-lg shadow-[#251d17]/15">
+                                <UserPlus size={22} />
                             </div>
-
-                            <div className="space-y-2 text-left">
-                                <label className="block text-sm font-medium text-[#2c2825]" htmlFor="signup-email">
-                                    Email
-                                </label>
-                                <input
-                                    id="signup-email"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(event) => handleChange("email", event.target.value)}
-                                    placeholder="you@example.com"
-                                    required
-                                    className="h-11 w-full rounded-xl border border-[#d8c7ad] bg-white px-3 text-sm text-[#1c1917] outline-none transition focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
-                                />
+                            <div>
+                                <CardTitle className="text-3xl font-black leading-tight tracking-normal text-[#1d1712]">
+                                    Create account
+                                </CardTitle>
+                                <CardDescription className="mt-2 text-sm leading-6 text-[#665747]">
+                                    Join the shared wallet and start tracking every contribution clearly.
+                                </CardDescription>
                             </div>
+                        </CardHeader>
 
-                            {status && (
-                                <p
-                                    className={`text-sm ${status.type === "success" ? "text-emerald-700" : "text-red-600"
-                                        }`}
+                        <CardContent>
+                            <form className="space-y-5" onSubmit={handleSubmit}>
+                                <div className="space-y-2 text-left">
+                                    <label className="block text-sm font-medium text-[#2c2825]" htmlFor="signup-firstname">
+                                        First name
+                                    </label>
+                                    <input
+                                        id="signup-firstname"
+                                        type="text"
+                                        value={formData.firstname}
+                                        onChange={(event) => handleChange("firstname", event.target.value)}
+                                        placeholder="Your first name"
+                                        required
+                                        className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
+                                    />
+                                </div>
+
+                                <div className="space-y-2 text-left">
+                                    <label className="block text-sm font-medium text-[#2c2825]" htmlFor="signup-lastname">
+                                        Last name
+                                    </label>
+                                    <input
+                                        id="signup-lastname"
+                                        type="text"
+                                        value={formData.lastname}
+                                        onChange={(event) => handleChange("lastname", event.target.value)}
+                                        placeholder="Your last name"
+                                        required
+                                        className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
+                                    />
+                                </div>
+
+                                <div className="space-y-2 text-left">
+                                    <label className="block text-sm font-medium text-[#2c2825]" htmlFor="signup-email">
+                                        Email
+                                    </label>
+                                    <input
+                                        id="signup-email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(event) => handleChange("email", event.target.value)}
+                                        placeholder="you@example.com"
+                                        required
+                                        className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
+                                    />
+                                </div>
+
+                                <div className="space-y-2 text-left">
+                                    <label className="block text-sm font-medium text-[#2c2825]" htmlFor="signup-password">
+                                        Password
+                                    </label>
+                                    <input
+                                        id="signup-password"
+                                        type="password"
+                                        value={formData.password}
+                                        onChange={(event) => handleChange("password", event.target.value)}
+                                        placeholder="Create a password"
+                                        required
+                                        minLength={6}
+                                        className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
+                                    />
+                                </div>
+
+                                <div className="space-y-2 text-left">
+                                    <label className="block text-sm font-medium text-[#2c2825]" htmlFor="signup-confirm-password">
+                                        Confirm password
+                                    </label>
+                                    <input
+                                        id="signup-confirm-password"
+                                        type="password"
+                                        value={formData.confirmPassword}
+                                        onChange={(event) => handleChange("confirmPassword", event.target.value)}
+                                        placeholder="Re-enter your password"
+                                        required
+                                        minLength={6}
+                                        className="h-12 w-full rounded-xl border border-[#d8c7ad] bg-white/90 px-3 text-sm text-[#1c1917] shadow-sm outline-none transition placeholder:text-[#a0917d] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
+                                    />
+                                </div>
+
+                                {error && (
+                                    <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-left text-sm text-red-700">
+                                        {error}
+                                    </p>
+                                )}
+
+                                <Button
+                                    type="submit"
+                                    size="lg"
+                                    className="h-12 w-full gap-2 rounded-xl bg-[#251d17] text-[#fff8ec] shadow-lg shadow-[#251d17]/15 hover:cursor-pointer hover:bg-[#3a2a20] disabled:cursor-not-allowed disabled:opacity-70"
                                 >
-                                    {status.message}
-                                </p>
-                            )}
+                                    Sign Up
+                                    <ArrowRight size={17} />
+                                </Button>
+                            </form>
 
-                            <Button
-                                type="submit"
-                                size="lg"
-                                disabled={isSubmitting}
-                                className="w-full bg-[#b08238] text-white hover:bg-[#9a6d2d] hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-70"
-                            >
-                                {isSubmitting ? "Submitting..." : "Submit Details"}
-                            </Button>
-                        </form>
-
-                        <p className="mt-5 text-center text-sm text-[#5f5b55]">
-                            Already have an account? {" "}
-                            <Link to="/login" className="font-medium text-[#b08238] hover:underline">
-                                Log in
-                            </Link>
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
-        </div>
+                            <p className="mt-6 text-center text-sm text-[#665747]">
+                                Already have an account?{" "}
+                                <Link to="/login" className="font-semibold text-[#251d17] hover:underline">
+                                    Log in
+                                </Link>
+                            </p>
+                        </CardContent>
+                    </Card>
+                </div>
+            </section>
+        </main>
     )
 }
 
