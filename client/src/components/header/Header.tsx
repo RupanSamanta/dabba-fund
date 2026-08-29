@@ -1,21 +1,32 @@
-import { ArrowUpRight, CircleDollarSign, WalletCards } from "lucide-react"
+import { ArrowDownRight, ArrowUpRight, WalletCards } from "lucide-react"
 import { Avatar, AvatarFallback } from "../ui/avatar"
-import { transactions } from "@/data/transactions"
 import { useAuth } from "@/context/useAuth"
+import { api } from "@/lib/api"
+import { useEffect, useState } from "react"
+import type { Transaction } from "@/types/transaction"
 
 const Header = () => {
     const { authData } = useAuth();
     const name = authData ? `${authData.firstname} ${authData.lastname}` : "User";
     const initials = `${authData?.firstname[0] ?? "U"}${authData?.firstname[1] ?? ""}`.toUpperCase();
+    
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
+    
+    useEffect(() => {
+        const fetchTransactions = async () => {
+            const result = await api.get<Transaction[]>("/api/transactions");
+            setTransactions(result.data);
+        }
+        fetchTransactions();
+    }, []);
+    
     const amount = transactions.reduce((sum, transaction) => {
         const signedAmount = transaction.type === "addition" ? Math.abs(transaction.amount) : -Math.abs(transaction.amount);
         return sum + signedAmount;
     }, 0);
-    const raised = transactions
-        .filter((transaction) => transaction.type === "addition")
+    const raised = transactions.filter((transaction) => transaction.type === "addition")
         .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0);
-    const spent = transactions
-        .filter((transaction) => transaction.type === "purchase" || transaction.type === "withdraw")
+    const spent = transactions.filter((transaction) => transaction.type === "purchase" || transaction.type === "withdraw")
         .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0);
 
     return (
@@ -41,14 +52,14 @@ const Header = () => {
                 </div>
             </div>
             <div className="relative mt-8 text-left">
-                <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.16em] text-[#d7c6a9]">
-                    <CircleDollarSign size={14} /> Current balance
+                <p className="text-xs font-medium uppercase tracking-[0.16em] text-[#d7c6a9]">
+                    Current balance
                 </p>
                 <h1 className="mt-2 text-5xl font-black tracking-normal">₹{amount}</h1>
                 <p className="mt-1 text-sm text-[#d7c6a9]">in the fund right now</p>
-                <div className="mt-5 flex gap-5 text-sm">
-                    <span className="flex items-center gap-1.5 text-[#e6c37b]"><ArrowUpRight size={15} /> ₹{raised} raised</span>
-                    <span className="text-[#cbbca6]">₹{spent} spent</span>
+                <div className="mt-5 flex gap-5 text-sm *:flex *:items-center *:gap-1">
+                    <span className="text-[#e6c37b]"><ArrowUpRight size={15} /> ₹{raised} raised</span>
+                    <span className="text-[#cbbca6]"><ArrowDownRight size={15} /> ₹{spent} spent</span>
                 </div>
             </div>
         </header>
