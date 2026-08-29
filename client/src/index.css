@@ -131,12 +131,11 @@
 }
 
 #root {
-  width: 500px;
-  max-width: 100%;
+  width: 100%;
+  max-width: 500px;
   min-height: 100svh;
   position: relative;
   margin: 0 auto;
-  text-align: center;
   box-sizing: border-box;
   background:
       linear-gradient(135deg, rgba(250, 247, 238, .9), transparent 48%),

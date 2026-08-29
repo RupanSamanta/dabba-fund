@@ -92,6 +92,7 @@ app.get("/api/users", (req, res) => {
         LEFT JOIN transactions t
             ON u.id = t.uid
         GROUP BY u.id, u.first_name, u.last_name, u.email, u.is_admin
+        ORDER BY u.first_name
     `, (err, users) => {
         if (err) {
             res.status(500).send({ message: err.message });
@@ -102,7 +103,7 @@ app.get("/api/users", (req, res) => {
 });
 
 app.get("/api/transactions", (req, res) => {
-    db.query(`SELECT u.first_name as name, t.tid as id, t.amount, t.type, t.time
+    db.query(`SELECT u.first_name as name, t.tid as id, t.amount, t.type, t.created_at as time
             FROM transactions t
             INNER JOIN users u
             ON t.user_id = u.id

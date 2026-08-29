@@ -3,6 +3,7 @@ import { defaultContributors } from "@/data/contributors"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
+import { ShoppingBasketIcon } from "lucide-react"
 
 interface LedgerListProps {
     transactions: Transaction[];
@@ -43,7 +44,7 @@ const getTransactionTypeLabel = (type: Transaction["type"]) => {
 
 const LedgerList = ({ transactions }: LedgerListProps) => {
     return (
-        <section className="w-full space-y-3 p-5 pb-28">
+        <section className="w-full space-y-3 pt-5 pb-28">
             <div className="flex items-end justify-between px-1">
                 <div className="text-left">
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#b08238]">Your activity</p>
@@ -52,58 +53,70 @@ const LedgerList = ({ transactions }: LedgerListProps) => {
                 <span className="text-xs text-[#8b7a65]">{transactions.length} entries</span>
             </div>
 
-            <Card className="gap-0 overflow-hidden rounded-2xl border-[#e4d3b6] bg-[#fff8ec] py-0 text-[#2c2825] shadow-md shadow-[#7c4f18]/5 ring-0">
+            <Card className="gap-0 overflow-hidden rounded-2xl border-[#e4d3b6] bg-[#fff8ec] py-0 text-[#2c2825] shadow-md shadow-[#7c4f18]/5 ring-1">
                 <CardContent className="gap-0 px-0">
-                    {transactions.map((transaction) => {
-                        const contributor = defaultContributors.find(
-                            (person) => person.id === transaction.userId
-                        );
-                        const contributorName = contributor
-                            ? `${contributor.firstname} ${contributor.lastname}`
-                            : transaction.userId;
-                        const contributorInitials = contributor
-                            ? `${contributor.firstname[0] ?? ""}${contributor.lastname[0] ?? ""}`
-                            : transaction.userId.slice(0, 2).toUpperCase();
-                        const isAddition = transaction.type === "addition";
-                        const amountPrefix = isAddition ? "+" : "-";
-                        const amountColor = isAddition ? "text-emerald-700" : "text-red-600";
-
-                        return (
-                            <div
-                                key={transaction.id}
-                                className="flex items-center justify-between border-b border-[#eee2cf] bg-white/35 p-4 transition-colors last:border-b-0 hover:bg-[#f3e7d4]"
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Avatar className="h-10 w-10">
-                                        <AvatarFallback className="bg-[#b08238] text-white">
-                                            {contributorInitials}
-                                        </AvatarFallback>
-                                    </Avatar>
-
-                                    <div className="text-left">
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            <p className="font-semibold text-[#1c1917]">
-                                                {contributorName}
-                                            </p>
-                                            <Badge
-                                                variant="outline"
-                                                className="h-5 rounded-sm border-[#d8c7ad] bg-[#f8f3e8] px-1.5 py-0 text-[10px] font-mono uppercase tracking-widest text-[#6c5a46]"
-                                            >
-                                                {getTransactionTypeLabel(transaction.type)}
-                                            </Badge>
-                                        </div>
-                                        <p className="text-sm text-[#78716c]">
-                                            {formatTransactionDate(transaction.date)}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <p className={`text-xl font-semibold ${amountColor}`}>
-                                    {amountPrefix}₹{Math.abs(transaction.amount)}
-                                </p>
+                    {transactions.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center gap-2 px-5 py-10 text-center">
+                            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f3e7d4] text-xl text-[#b08238]">
+                                <ShoppingBasketIcon />
                             </div>
-                        );
-                    })}
+                            <p className="text-lg font-bold text-[#251d17]">No transactions yet</p>
+                            <p className="max-w-xs text-sm text-[#766754]">
+                                Add money to the jar to start building your shared fund.
+                            </p>
+                        </div>
+                    ) : (
+                        transactions.map((transaction) => {
+                            const contributor = defaultContributors.find(
+                                (person) => person.id === transaction.userId
+                            );
+                            const contributorName = contributor
+                                ? `${contributor.firstname} ${contributor.lastname}`
+                                : transaction.userId;
+                            const contributorInitials = contributor
+                                ? `${contributor.firstname[0] ?? ""}${contributor.lastname[0] ?? ""}`
+                                : transaction.userId.slice(0, 2).toUpperCase();
+                            const isAddition = transaction.type === "addition";
+                            const amountPrefix = isAddition ? "+" : "-";
+                            const amountColor = isAddition ? "text-emerald-700" : "text-red-600";
+
+                            return (
+                                <div
+                                    key={transaction.id}
+                                    className="flex items-center justify-between border-b border-[#eee2cf] bg-white/35 p-4 transition-colors last:border-b-0 hover:bg-[#f3e7d4]"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Avatar className="h-10 w-10">
+                                            <AvatarFallback className="bg-[#b08238] text-white">
+                                                {contributorInitials}
+                                            </AvatarFallback>
+                                        </Avatar>
+
+                                        <div className="text-left">
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                <p className="font-semibold text-[#1c1917]">
+                                                    {contributorName}
+                                                </p>
+                                                <Badge
+                                                    variant="outline"
+                                                    className="h-5 rounded-sm border-[#d8c7ad] bg-[#f8f3e8] px-1.5 py-0 text-[10px] font-mono uppercase tracking-widest text-[#6c5a46]"
+                                                >
+                                                    {getTransactionTypeLabel(transaction.type)}
+                                                </Badge>
+                                            </div>
+                                            <p className="text-sm text-[#78716c]">
+                                                {formatTransactionDate(transaction.date)}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <p className={`text-xl font-semibold ${amountColor}`}>
+                                        {amountPrefix}₹{Math.abs(transaction.amount)}
+                                    </p>
+                                </div>
+                            );
+                        })
+                    )}
                 </CardContent>
             </Card>
         </section>
