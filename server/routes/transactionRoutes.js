@@ -41,24 +41,51 @@ router.get("/transactions", (req, res) => {
 
 router.get("/fund-requests", async (req, res) => {
     const isAdmin = String(req.query.isAdmin || "false") === "true";
-    const adminId = req.query.userId || req.query.adminId;
+    const userId = req.query.userId || req.query.uid || req.query.id || null;
+    const adminId = req.query.adminId || null;
 
-    if (!isAdmin || !adminId) {
-        return res.status(403).send({ message: "Admin access required." });
+    if (!userId && (!isAdmin || !adminId)) {
+        return res.status(403).send({ message: "User or admin access required." });
     }
 
     try {
-        const [adminUser] = await db.promise().query("SELECT id, is_admin FROM users WHERE id = ?", [adminId]);
+        if (isAdmin) {
+            if (!adminId) {
+                return res.status(403).send({ message: "Admin access required." });
+            }
 
-        if (!adminUser.length || !Boolean(adminUser[0].is_admin)) {
-            return res.status(403).send({ message: "Admin access required." });
+            const [adminUser] = await db.promise().query("SELECT id, is_admin FROM users WHERE id = ?", [adminId]);
+
+            if (!adminUser.length || !Boolean(adminUser[0].is_admin)) {
+                return res.status(403).send({ message: "Admin access required." });
+            }
+
+            const [rows] = await db.promise().query(
+                `SELECT rt_id as requestId, uid as userId, amount, status, created_at as createdAt, description
+                 FROM fund_requests
+                 WHERE status = 'pending'
+                 ORDER BY created_at DESC`
+            );
+
+            return res.send(rows);
+        }
+
+        if (!userId) {
+            return res.status(403).send({ message: "User access required." });
+        }
+
+        const [userRows] = await db.promise().query("SELECT id FROM users WHERE id = ? LIMIT 1", [userId]);
+
+        if (!userRows.length) {
+            return res.status(404).send({ message: "User not found." });
         }
 
         const [rows] = await db.promise().query(
             `SELECT rt_id as requestId, uid as userId, amount, status, created_at as createdAt, description
              FROM fund_requests
-             WHERE status = 'pending'
-             ORDER BY created_at DESC`
+             WHERE uid = ?
+             ORDER BY created_at DESC`,
+            [userId]
         );
 
         return res.send(rows);

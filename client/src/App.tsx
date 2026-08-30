@@ -6,11 +6,12 @@ import Purchases from "./components/purchases/Purchases"
 import Home from "./components/home/Home"
 import LoginPage from "./components/auth/LoginPage"
 import SignupPage from "./components/auth/SignupPage"
+import Requests from "./components/requests/Requests"
 import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 import { useAuth } from "./context/useAuth"
 
 function App() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, authData } = useAuth()
   const location = useLocation()
   const isAuthRoute = location.pathname === "/login" || location.pathname === "/signup"
 
@@ -18,6 +19,7 @@ function App() {
   const dashboard = isAuthenticated ? <Overview /> : <Navigate to="/" replace />
   const protectedLedger = isAuthenticated ? <Ledger /> : <Navigate to="/login" replace />
   const protectedPurchases = isAuthenticated ? <Purchases /> : <Navigate to="/login" replace />
+  const protectedRequests = isAuthenticated ? <Requests /> : <Navigate to="/" replace />
   const loginPage = isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />
   const signupPage = isAuthenticated ? <Navigate to="/" replace /> : <SignupPage />
 
@@ -29,6 +31,7 @@ function App() {
         <Route path="/overview" element={dashboard} />
         <Route path="/ledger" element={protectedLedger} />
         <Route path="/purchases" element={protectedPurchases} />
+        <Route path="/requests" element={protectedRequests} />
         <Route path="/login" element={loginPage} />
         <Route path="/signup" element={signupPage} />
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,5 +1,4 @@
 import type { Transaction } from "@/types/transaction"
-import { defaultContributors } from "@/data/contributors"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -67,15 +66,14 @@ const LedgerList = ({ transactions }: LedgerListProps) => {
                         </div>
                     ) : (
                         transactions.map((transaction) => {
-                            const contributor = defaultContributors.find(
-                                (person) => person.id === transaction.name
-                            );
-                            const contributorName = contributor
-                                ? `${contributor.firstname} ${contributor.lastname}`
-                                : transaction.name;
-                            const contributorInitials = contributor
-                                ? `${contributor.firstname[0] ?? ""}${contributor.lastname[0] ?? ""}`
-                                : transaction.name.slice(0, 2).toUpperCase();
+                            const contributorName = transaction.name || "User";
+                            const contributorInitials = contributorName
+                                .split(/\s+/)
+                                .filter(Boolean)
+                                .slice(0, 2)
+                                .map((part) => part[0] ?? "")
+                                .join("")
+                                .toUpperCase() || "U";
                             const isAddition = transaction.type === "addition";
                             const amountPrefix = isAddition ? "+" : "-";
                             const amountColor = isAddition ? "text-emerald-700" : "text-red-600";

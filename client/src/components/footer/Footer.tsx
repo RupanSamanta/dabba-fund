@@ -1,13 +1,16 @@
-import { BookOpen, ShoppingBag, Wallet } from "lucide-react"
+import { BookOpen, ClipboardList, ShoppingBag, Wallet } from "lucide-react"
 import { NavLink } from "react-router-dom"
+import { useAuth } from "@/context/useAuth"
 import FooterButton from "./FooterButton"
 
 const Footer = () => {
+    const { authData } = useAuth()
 
     const buttonList = [
         { icon: Wallet, label: 'Overview', path: '/' },
         { icon: BookOpen, label: 'Ledger', path: '/ledger' },
-        { icon: ShoppingBag, label: 'Purchases', path: '/purchases' }
+        { icon: ShoppingBag, label: 'Purchases', path: '/purchases' },
+        { icon: ClipboardList, label: 'Requests', path: '/requests' },
     ];
 
     return (

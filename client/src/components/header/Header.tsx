@@ -27,6 +27,19 @@ const Header = () => {
         void fetchTransactions();
     }, [location.pathname]);
 
+    const lastUpdated = useMemo(() => {
+        if (transactions.length === 0) return "No updates yet";
+
+        const latest = [...transactions].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())[0];
+        const diffMinutes = Math.max(0, Math.floor((Date.now() - new Date(latest.time).getTime()) / 60000));
+
+        if (diffMinutes < 1) return "Updated now";
+        if (diffMinutes < 60) return `Updated ${diffMinutes} min ago`;
+
+        const diffHours = Math.floor(diffMinutes / 60);
+        return `Updated ${diffHours} hr ago`;
+    }, [transactions]);
+
     const amount = useMemo(() => transactions.reduce((sum, transaction) => {
         const signedAmount = transaction.type === "addition" ? Math.abs(transaction.amount) : -Math.abs(transaction.amount);
         return sum + signedAmount;
@@ -51,13 +64,15 @@ const Header = () => {
                         <p className="text-[11px] text-[#d7c6a9]">shared wallet</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 p-1 pr-2 text-sm backdrop-blur">
-                    <Avatar size="sm">
-                        <AvatarFallback className="bg-[#3f7f6f] text-white">
-                            {initials}
-                        </AvatarFallback>
-                    </Avatar>
-                    <span className="max-w-28 truncate">{name}</span>
+                <div className="flex flex-col items-end gap-1 text-right">
+                    <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 p-1 pr-2 text-sm backdrop-blur">
+                        <Avatar size="sm">
+                            <AvatarFallback className="bg-[#3f7f6f] text-white">
+                                {initials}
+                            </AvatarFallback>
+                        </Avatar>
+                        <span className="max-w-28 truncate">{name}</span>
+                    </div>
                 </div>
             </div>
             <div className="relative mt-8 text-left">
@@ -66,9 +81,12 @@ const Header = () => {
                 </p>
                 <h1 className="mt-2 text-5xl font-black tracking-normal">₹{amount}</h1>
                 <p className="mt-1 text-sm text-[#d7c6a9]">in the fund right now</p>
-                <div className="mt-5 flex gap-5 text-sm *:flex *:items-center *:gap-1">
-                    <span className="text-[#e6c37b]"><ArrowUpRight size={15} /> ₹{raised} raised</span>
-                    <span className="text-[#cbbca6]"><ArrowDownRight size={15} /> ₹{spent} spent</span>
+                <div className="mt-5 flex justify-between text-sm">
+                    <div className="flex gap-5 *:flex *:items-center *:gap-1">
+                        <span className="text-[#e6c37b]"><ArrowUpRight size={15} /> ₹{raised} raised</span>
+                        <span className="text-[#cbbca6]"><ArrowDownRight size={15} /> ₹{spent} spent</span>
+                    </div>
+                    <span className="text-[10px] uppercase tracking-[0.18em] text-[#d7c6a9]">{lastUpdated}</span>
                 </div>
             </div>
         </header>
