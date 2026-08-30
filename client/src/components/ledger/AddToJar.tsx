@@ -1,23 +1,59 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { api } from "@/lib/api"
+import { useAuth } from "@/context/useAuth"
 
 const presetAmounts = [10, 20, 30, 50]
 
 const AddToJar = () => {
+  const { authData } = useAuth()
   const [selectedAmount, setSelectedAmount] = useState<number>(10)
   const [customAmount, setCustomAmount] = useState("")
   const [isCustom, setIsCustom] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [message, setMessage] = useState("")
 
   const currentAmount = isCustom ? Number(customAmount) || 0 : selectedAmount
 
   const handlePresetClick = (amount: number) => {
     setSelectedAmount(amount)
     setIsCustom(false)
+    setMessage("")
   }
 
   const handleCustomClick = () => {
     setIsCustom(true)
+    setMessage("")
+  }
+
+  const handleRequestSubmit = async () => {
+    if (!authData?.id) {
+      setMessage("Please log in to add to the jar.")
+      return
+    }
+
+    if (currentAmount <= 0) {
+      setMessage("Choose a valid amount.")
+      return
+    }
+
+    setIsSubmitting(true)
+    setMessage("")
+
+    try {
+      const response = await api.post("/api/fund-requests", {
+        userId: authData.id,
+        isAdmin: authData.isAdmin,
+        amount: currentAmount,
+      })
+
+      setMessage(response.data.message || "Request submitted.")
+    } catch (error: any) {
+      setMessage(error?.response?.data?.message || "Something went wrong while submitting your request.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -81,13 +117,18 @@ const AddToJar = () => {
           </label>
         )}
 
+        {message ? (
+          <p className="text-left text-sm font-medium text-[#3f7f6f]">{message}</p>
+        ) : null}
+
         <Button
           type="button"
           size="lg"
           className="w-full bg-[#251d17] text-[#fff8ec] hover:bg-[#3a2a20]"
-          disabled={currentAmount <= 0}
+          disabled={currentAmount <= 0 || isSubmitting || !authData?.id}
+          onClick={handleRequestSubmit}
         >
-          Add ₹{currentAmount || 0} to the jar
+          {isSubmitting ? "Submitting..." : `Add ₹${currentAmount || 0} to the jar`}
         </Button>
       </CardContent>
     </Card>

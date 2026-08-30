@@ -68,14 +68,14 @@ const LedgerList = ({ transactions }: LedgerListProps) => {
                     ) : (
                         transactions.map((transaction) => {
                             const contributor = defaultContributors.find(
-                                (person) => person.id === transaction.userId
+                                (person) => person.id === transaction.name
                             );
                             const contributorName = contributor
                                 ? `${contributor.firstname} ${contributor.lastname}`
-                                : transaction.userId;
+                                : transaction.name;
                             const contributorInitials = contributor
                                 ? `${contributor.firstname[0] ?? ""}${contributor.lastname[0] ?? ""}`
-                                : transaction.userId.slice(0, 2).toUpperCase();
+                                : transaction.name.slice(0, 2).toUpperCase();
                             const isAddition = transaction.type === "addition";
                             const amountPrefix = isAddition ? "+" : "-";
                             const amountColor = isAddition ? "text-emerald-700" : "text-red-600";
@@ -105,7 +105,7 @@ const LedgerList = ({ transactions }: LedgerListProps) => {
                                                 </Badge>
                                             </div>
                                             <p className="text-sm text-[#78716c]">
-                                                {formatTransactionDate(transaction.date)}
+                                                {formatTransactionDate(new Date(transaction.time))}
                                             </p>
                                         </div>
                                     </div>

@@ -2,32 +2,41 @@ import { ArrowDownRight, ArrowUpRight, WalletCards } from "lucide-react"
 import { Avatar, AvatarFallback } from "../ui/avatar"
 import { useAuth } from "@/context/useAuth"
 import { api } from "@/lib/api"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { useLocation } from "react-router-dom"
 import type { Transaction } from "@/types/transaction"
 
 const Header = () => {
     const { authData } = useAuth();
+    const location = useLocation();
     const name = authData ? `${authData.firstname} ${authData.lastname}` : "User";
     const initials = `${authData?.firstname[0] ?? "U"}${authData?.firstname[1] ?? ""}`.toUpperCase();
-    
+
     const [transactions, setTransactions] = useState<Transaction[]>([]);
-    
+
     useEffect(() => {
         const fetchTransactions = async () => {
-            const result = await api.get<Transaction[]>("/api/transactions");
-            setTransactions(result.data);
+            try {
+                const result = await api.get<Transaction[]>("/api/transactions");
+                setTransactions(result.data);
+            } catch (error) {
+                console.error("Failed to fetch transactions", error);
+            }
         }
-        fetchTransactions();
-    }, []);
-    
-    const amount = transactions.reduce((sum, transaction) => {
+
+        void fetchTransactions();
+    }, [location.pathname]);
+
+    const amount = useMemo(() => transactions.reduce((sum, transaction) => {
         const signedAmount = transaction.type === "addition" ? Math.abs(transaction.amount) : -Math.abs(transaction.amount);
         return sum + signedAmount;
-    }, 0);
-    const raised = transactions.filter((transaction) => transaction.type === "addition")
-        .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0);
-    const spent = transactions.filter((transaction) => transaction.type === "purchase" || transaction.type === "withdraw")
-        .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0);
+    }, 0), [transactions]);
+
+    const raised = useMemo(() => transactions.filter((transaction) => transaction.type === "addition")
+        .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0), [transactions]);
+
+    const spent = useMemo(() => transactions.filter((transaction) => transaction.type === "purchase" || transaction.type === "withdraw")
+        .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0), [transactions]);
 
     return (
         <header className="relative w-full overflow-hidden rounded-b-[2rem] bg-[#251d17] px-5 pb-6 pt-5 text-[#fff8ec] shadow-xl shadow-[#251d17]/10 sm:px-7">
@@ -43,12 +52,12 @@ const Header = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 p-1 pr-2 text-sm backdrop-blur">
-                <Avatar size="sm">
-                    <AvatarFallback className="bg-[#3f7f6f] text-white">
-                        {initials}
-                    </AvatarFallback>
-                </Avatar>
-                <span className="max-w-28 truncate">{name}</span>
+                    <Avatar size="sm">
+                        <AvatarFallback className="bg-[#3f7f6f] text-white">
+                            {initials}
+                        </AvatarFallback>
+                    </Avatar>
+                    <span className="max-w-28 truncate">{name}</span>
                 </div>
             </div>
             <div className="relative mt-8 text-left">
