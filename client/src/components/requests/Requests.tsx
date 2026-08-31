@@ -107,7 +107,7 @@ const Requests = () => {
                         <p className="text-sm text-[#766754]">Loading requests...</p>
                     ) : requests.length === 0 ? (
                         <div className="rounded-xl border border-dashed border-[#d9c7a4] bg-white/40 p-5 text-center text-sm text-[#766754]">
-                            {isAdmin ? "No pending fund requests." : "You have not submitted any fund requests yet."}
+                            {isAdmin ? "No pending requests." : "You have not submitted any requests yet."}
                         </div>
                     ) : (
                         requests.map((request) => (

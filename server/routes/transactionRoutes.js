@@ -6,10 +6,10 @@ const router = express.Router();
 
 const getUserId = (req) => req.body?.userId || req.body?.uid || req.query?.userId || req.query?.uid || null;
 
-const createFundRequestRow = async (connection, requestId, userId, amount) => {
+const createRequestRow = async (connection, requestId, userId, amount, type = "add_money", description = null, purchaseId = null) => {
     await connection.query(
-        "INSERT INTO fund_requests (rt_id, uid, amount, status, created_at, description) VALUES (?, ?, ?, 'pending', NOW(), NULL)",
-        [requestId, userId, amount]
+        "INSERT INTO requests (request_id, uid, amount, type, status, created_at, description, purchase_id) VALUES (?, ?, ?, ?, 'pending', NOW(), ?, ?)",
+        [requestId, userId, amount, type, description, purchaseId]
     );
 };
 
@@ -61,8 +61,8 @@ router.get("/fund-requests", async (req, res) => {
             }
 
             const [rows] = await db.promise().query(
-                `SELECT rt_id as requestId, uid as userId, amount, status, created_at as createdAt, description
-                 FROM fund_requests
+                `SELECT request_id as requestId, uid as userId, amount, type, status, created_at as createdAt, description
+                 FROM requests
                  WHERE status = 'pending'
                  ORDER BY created_at DESC`
             );
@@ -81,8 +81,8 @@ router.get("/fund-requests", async (req, res) => {
         }
 
         const [rows] = await db.promise().query(
-            `SELECT rt_id as requestId, uid as userId, amount, status, created_at as createdAt, description
-             FROM fund_requests
+            `SELECT request_id as requestId, uid as userId, amount, type, status, created_at as createdAt, description
+             FROM requests
              WHERE uid = ?
              ORDER BY created_at DESC`,
             [userId]
@@ -98,6 +98,8 @@ router.post("/fund-requests", async (req, res) => {
     const amount = Number(req.body.amount);
     const userId = getUserId(req);
     const isAdminRequest = String(req.body.isAdmin || "false") === "true";
+    const requestType = String(req.body.type || "add_money").toLowerCase();
+    const description = req.body.description || null;
 
     if (!userId) {
         return res.status(400).send({ message: "User id is required." });
@@ -105,6 +107,10 @@ router.post("/fund-requests", async (req, res) => {
 
     if (!Number.isFinite(amount) || amount <= 0) {
         return res.status(400).send({ message: "Valid amount is required." });
+    }
+
+    if (!['add_money', 'purchase'].includes(requestType)) {
+        return res.status(400).send({ message: "Request type must be add_money or purchase." });
     }
 
     const requestId = crypto.randomUUID();
@@ -115,9 +121,10 @@ router.post("/fund-requests", async (req, res) => {
         try {
             await connection.beginTransaction();
 
-            await createFundRequestRow(connection, requestId, userId, amount);
+            const purchaseId = requestType === "purchase" ? requestId : null;
+            await createRequestRow(connection, requestId, userId, amount, requestType, description, purchaseId);
 
-            if (isAdminRequest) {
+            if (isAdminRequest && requestType === "add_money") {
                 const [userRows] = await connection.query("SELECT id, is_admin FROM users WHERE id = ?", [userId]);
                 if (!userRows.length || !Boolean(userRows[0].is_admin)) {
                     await connection.rollback();
@@ -127,16 +134,17 @@ router.post("/fund-requests", async (req, res) => {
                 await createApprovedTransaction(connection, userId, amount);
 
                 await connection.query(
-                    "UPDATE fund_requests SET status = 'approved' WHERE rt_id = ?",
+                    "UPDATE requests SET status = 'approved' WHERE request_id = ?",
                     [requestId]
                 );
             }
 
             await connection.commit();
             return res.status(201).send({
-                message: isAdminRequest ? "Fund request approved immediately." : "Fund request submitted for approval.",
+                message: isAdminRequest && requestType === "add_money" ? "Fund request approved immediately." : "Request submitted for approval.",
                 requestId,
-                status: isAdminRequest ? "approved" : "pending",
+                status: isAdminRequest && requestType === "add_money" ? "approved" : "pending",
+                type: requestType,
             });
         } catch (error) {
             await connection.rollback();
@@ -170,12 +178,12 @@ router.post("/fund-requests/:requestId/decision", async (req, res) => {
         }
 
         const [requestRows] = await db.promise().query(
-            "SELECT uid, amount FROM fund_requests WHERE rt_id = ? LIMIT 1",
+            "SELECT uid, amount, type FROM requests WHERE request_id = ? LIMIT 1",
             [requestId]
         );
 
         if (!requestRows.length) {
-            return res.status(404).send({ message: "Fund request not found." });
+            return res.status(404).send({ message: "Request not found." });
         }
 
         const request = requestRows[0];
@@ -184,13 +192,13 @@ router.post("/fund-requests/:requestId/decision", async (req, res) => {
         try {
             await connection.beginTransaction();
 
-            if (decision === "approve") {
+            if (decision === "approve" && request.type === "add_money") {
                 await createApprovedTransaction(connection, request.uid, request.amount);
             }
 
             const statusValue = decision === "approve" ? "approved" : "rejected";
             await connection.query(
-                "UPDATE fund_requests SET status = ? WHERE rt_id = ?",
+                "UPDATE requests SET status = ? WHERE request_id = ?",
                 [statusValue, requestId]
             );
 
@@ -198,7 +206,8 @@ router.post("/fund-requests/:requestId/decision", async (req, res) => {
             return res.send({
                 requestId,
                 status: statusValue,
-                message: decision === "approve" ? "Fund request approved." : "Fund request rejected.",
+                type: request.type,
+                message: decision === "approve" ? "Request approved." : "Request rejected.",
             });
         } catch (error) {
             await connection.rollback();

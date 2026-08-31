@@ -17,13 +17,14 @@ const RequestCard = ({ request, userName, onDecision }: RequestCardProps) => {
 
   const displayName = userName || request.userId
   const showActions = Boolean(onDecision)
+  const requestTypeLabel = request.type === "purchase" ? "Purchase" : "Add money"
 
   return (
     <div className="rounded-2xl border border-[#e4d3b6] bg-white/70 p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-semibold text-[#1c1917]">{displayName}</p>
-          <p className="text-sm text-[#766754]">{new Date(request.createdAt).toLocaleString()}</p>
+          <p className="text-sm text-[#766754]">{requestTypeLabel} · {new Date(request.createdAt).toLocaleString()}</p>
         </div>
 
         <Badge
