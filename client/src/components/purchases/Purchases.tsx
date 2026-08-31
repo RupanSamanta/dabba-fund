@@ -1,148 +1,177 @@
-import { useState } from "react"
-import { Check, ClipboardList, Plus } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react"
+import { Plus } from "lucide-react"
+import { api } from "@/lib/api"
+import { useAuth } from "@/context/useAuth"
+import PurchaseList from "./PurchaseList"
+import PurchaseProposalForm from "./PurchaseProposalForm"
 
-type ApprovedPurchase = {
-  id: number
-  title: string
+export type PurchaseRequest = {
+  requestId: string
+  userId: string
   amount: number
-  note?: string
-  approvedAt: string
+  type: "purchase"
+  status: "pending" | "approved" | "rejected"
+  createdAt: string
+  description?: string | null
+  purchaseId?: string | null
+  yesVotes: number
+  noVotes: number
 }
 
-const initialApprovedPurchases: ApprovedPurchase[] = [
-  {
-    id: 1,
-    title: "Groceries",
-    amount: 420,
-    note: "Weekly kitchen essentials",
-    approvedAt: "Today",
-  },
-  {
-    id: 2,
-    title: "Tea & snacks",
-    amount: 180,
-    note: "Office pantry restock",
-    approvedAt: "Yesterday",
-  },
-]
+export type UserSummary = {
+  id: string
+  firstname: string
+  lastname: string
+}
 
 const Purchases = () => {
+  const { authData } = useAuth()
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [approvedPurchases, setApprovedPurchases] = useState(initialApprovedPurchases)
-  const [proposal, setProposal] = useState({
-    title: "",
-    amount: "",
-    note: "",
-  });
+  const [requests, setRequests] = useState<PurchaseRequest[]>([])
+  const [userNames, setUserNames] = useState<Record<string, string>>({})
+  const [balance, setBalance] = useState(0)
+  const [isLoading, setIsLoading] = useState(true)
+  const [message, setMessage] = useState("")
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const approvedPurchases = requests.filter((purchase) => purchase.status === "approved")
 
-    const title = proposal.title.trim()
-    const amount = Number(proposal.amount)
-
-    if (!title || !amount || amount <= 0) {
+  useEffect(() => {
+    if (!authData?.id) {
+      setIsLoading(false)
       return
     }
 
-    setApprovedPurchases((current) => [
-      {
-        id: Date.now(),
-        title,
-        amount,
-        note: proposal.note.trim() || undefined,
-        approvedAt: "Just now",
-      },
-      ...current,
-    ])
+    let isCancelled = false
 
-    setProposal({ title: "", amount: "", note: "" })
-    setIsFormOpen(false)
+    const loadData = async () => {
+      try {
+        setIsLoading(true)
+
+        const [balanceResponse, requestsResponse, usersResponse] = await Promise.all([
+          api.get<{ balance: number }>("/api/fund-balance"),
+          api.get<PurchaseRequest[]>(`/api/fund-requests?type=purchase&userId=${authData.id}`),
+          api.get<UserSummary[]>("/api/users"),
+        ])
+
+        if (isCancelled) return
+
+        const namesById: Record<string, string> = {}
+        usersResponse.data.forEach((user) => {
+          namesById[user.id] = `${user.firstname} ${user.lastname}`.trim()
+        })
+
+        setBalance(balanceResponse.data.balance)
+        setUserNames(namesById)
+        setRequests(requestsResponse.data)
+        setMessage("")
+      } catch (error: unknown) {
+        if (isCancelled) return
+        const err = error as { response?: { data?: { message?: string } } }
+        setMessage(err.response?.data?.message || "Unable to load purchase requests.")
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false)
+        }
+      }
+    }
+
+    void loadData()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [authData?.id])
+
+  const refreshData = async () => {
+    if (!authData?.id) return
+
+    try {
+      const [balanceResponse, requestsResponse, usersResponse] = await Promise.all([
+        api.get<{ balance: number }>("/api/fund-balance"),
+        api.get<PurchaseRequest[]>(`/api/fund-requests?type=purchase&userId=${authData.id}`),
+        api.get<UserSummary[]>("/api/users"),
+      ])
+
+      const namesById: Record<string, string> = {}
+      usersResponse.data.forEach((user) => {
+        namesById[user.id] = `${user.firstname} ${user.lastname}`.trim()
+      })
+
+      setBalance(balanceResponse.data.balance)
+      setUserNames(namesById)
+      setRequests(requestsResponse.data)
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } }
+      setMessage(err.response?.data?.message || "Could not refresh purchase data.")
+    }
+  }
+
+  const handleSubmit = async (proposal: { title: string; amount: number; note: string }) => {
+    if (!authData?.id) {
+      setMessage("Please sign in to propose a purchase.")
+      return
+    }
+
+    if (proposal.amount >= balance) {
+      setMessage(`Purchase amount must be less than the current fund balance of ₹${balance}.`)
+      return
+    }
+
+    try {
+      setMessage("")
+      await api.post("/api/fund-requests", {
+        userId: authData.id,
+        type: "purchase",
+        amount: proposal.amount,
+        description: proposal.note ? `${proposal.title} — ${proposal.note}` : proposal.title,
+      })
+
+      await refreshData()
+      setIsFormOpen(false)
+      setMessage("Purchase proposal submitted. Other members can vote on it now.")
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } }
+      setMessage(err.response?.data?.message || "Could not submit the purchase request.")
+    }
+  }
+
+  const handleVote = async (requestId: string, vote: "yes" | "no") => {
+    if (!authData?.id) {
+      setMessage("Please sign in to vote.")
+      return
+    }
+
+    try {
+      setMessage("")
+      await api.post(`/api/fund-requests/${requestId}/vote`, {
+        uid: authData.id,
+        vote,
+      })
+
+      await refreshData()
+      setMessage("Vote recorded successfully.")
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } }
+      setMessage(err.response?.data?.message || "Could not save your vote.")
+    }
   }
 
   return (
-    <section className="space-y-5 p-5 pb-28 ">
+    <section className="space-y-5 p-5 pb-28">
+
       <div
-          onClick={() => setIsFormOpen((open) => !open)}
-          className={`bg-[#251d17] text-[#fff8ec] rounded-xl hover:bg-[#3a2a20] justify-center items-center gap-3 p-3 ${isFormOpen ? 'hidden' : 'flex'}`}
-        >
-          <Plus size={16} />
-          Propose a Purchase
+        onClick={() => setIsFormOpen((open) => !open)}
+        className={`flex cursor-pointer justify-center items-center gap-3 rounded-xl bg-[#251d17] p-3 text-[#fff8ec] hover:bg-[#3a2a20] ${isFormOpen ? "hidden" : "flex"}`}
+      >
+        <Plus size={16} />
+        Propose a Purchase
       </div>
 
-      {isFormOpen && (
-        <Card className="overflow-hidden rounded-2xl border-[#e4d3b6] bg-[#fff8ec] shadow-md shadow-[#7c4f18]/5 ring-1 py-0">
-          <CardHeader className="px-5 pb-2 pt-5">
-            <CardTitle className="text-left text-xl font-black tracking-normal text-[#251d17] uppercase">
-              New proposal
-            </CardTitle>
-          </CardHeader>
+      {isFormOpen ? (
+        <PurchaseProposalForm balance={balance} onSubmit={handleSubmit} onCancel={() => setIsFormOpen(false)} />
+      ) : null}
 
-          <CardContent className="px-5 pb-5">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <label className="block text-left">
-                <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.14em] text-[#766754]">
-                  What is it?
-                </span>
-                <input
-                  type="text"
-                  value={proposal.title}
-                  onChange={(event) => setProposal((current) => ({ ...current, title: event.target.value }))}
-                  placeholder="e.g. Groceries"
-                  className="w-full rounded-xl border border-[#e4d3b6] bg-white/80 px-3 py-2.5 text-base text-[#251d17] outline-none transition placeholder:text-[#a39280] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
-                />
-              </label>
-
-              <label className="block text-left">
-                <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.14em] text-[#766754]">
-                  Amount
-                </span>
-                <input
-                  type="number"
-                  min="1"
-                  value={proposal.amount}
-                  onChange={(event) => setProposal((current) => ({ ...current, amount: event.target.value }))}
-                  placeholder="0"
-                  className="w-full rounded-xl border border-[#e4d3b6] bg-white/80 px-3 py-2.5 text-base text-[#251d17] outline-none transition placeholder:text-[#a39280] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
-                />
-              </label>
-
-              <label className="block text-left">
-                <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.14em] text-[#766754]">
-                  Note (optional)
-                </span>
-                <textarea
-                  value={proposal.note}
-                  onChange={(event) => setProposal((current) => ({ ...current, note: event.target.value }))}
-                  placeholder="Add a quick detail"
-                  rows={3}
-                  className="w-full rounded-xl border border-[#e4d3b6] bg-white/80 px-3 py-2.5 text-base text-[#251d17] outline-none transition placeholder:text-[#a39280] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
-                />
-              </label>
-
-              <div className="flex gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setIsFormOpen(false)
-                    setProposal({ title: "", amount: "", note: "" })
-                  }}
-                  className="flex-1 border-[#d8c7ad] bg-transparent text-[#2c2825] hover:bg-[#f8f3e8]"
-                >
-                  Cancel
-                </Button>
-                <Button type="submit" className="flex-1 bg-[#251d17] text-[#fff8ec] hover:bg-[#3a2a20]">
-                  Propose
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+      {message ? <p className="text-sm font-medium text-[#3f7f6f]">{message}</p> : null}
 
       <section className="w-full space-y-3 pt-2">
         <div className="flex items-end justify-between px-1">
@@ -153,46 +182,11 @@ const Purchases = () => {
           <span className="text-xs text-[#8b7a65]">{approvedPurchases.length} items</span>
         </div>
 
-        <Card className="gap-0 overflow-hidden rounded-2xl border-[#e4d3b6] bg-[#fff8ec] py-0 text-[#2c2825] shadow-md shadow-[#7c4f18]/5 ring-1">
-          <CardContent className="gap-0 px-0">
-            {approvedPurchases.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-2 px-5 py-10 text-center">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#f3e7d4] text-xl text-[#b08238]">
-                  <ClipboardList size={20} />
-                </div>
-                <p className="text-lg font-bold text-[#251d17]">No approved purchases</p>
-                <p className="max-w-xs text-sm text-[#766754]">
-                  Propose a purchase and it will show up here once approved.
-                </p>
-              </div>
-            ) : (
-              approvedPurchases.map((purchase) => (
-                <div
-                  key={purchase.id}
-                  className="flex items-center justify-between border-b border-[#eee2cf] bg-white/35 p-4 transition-colors last:border-b-0 hover:bg-[#f3e7d4]"
-                >
-                  <div className="min-w-0 flex-1 text-left">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-[#1c1917]">{purchase.title}</p>
-                      <Badge
-                        variant="outline"
-                        className="h-5 rounded-sm border-[#d8c7ad] bg-[#f8f3e8] px-1.5 py-0 text-[10px] font-mono uppercase tracking-widest text-[#6c5a46]"
-                      >
-                        <span className="flex items-center gap-1">
-                          <Check size={10} /> Approved
-                        </span>
-                      </Badge>
-                    </div>
-                    {purchase.note && <p className="mt-1 text-sm text-[#78716c]">{purchase.note}</p>}
-                    <p className="mt-1 text-xs text-[#8b7a65]">{purchase.approvedAt}</p>
-                  </div>
-
-                  <p className="ml-4 text-xl font-semibold text-[#251d17]">₹{purchase.amount}</p>
-                </div>
-              ))
-            )}
-          </CardContent>
-        </Card>
+        {isLoading ? (
+          <p className="text-sm text-[#766754]">Loading purchases...</p>
+        ) : (
+          <PurchaseList purchases={requests} userNames={userNames} totalUsers={Object.keys(userNames).length} onVote={handleVote} />
+        )}
       </section>
     </section>
   )
