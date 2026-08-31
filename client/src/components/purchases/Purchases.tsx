@@ -2,21 +2,9 @@ import { useEffect, useState } from "react"
 import { Plus } from "lucide-react"
 import { api } from "@/lib/api"
 import { useAuth } from "@/context/useAuth"
+import type { PurchaseRequest } from "@/types/purchase"
 import PurchaseList from "./PurchaseList"
 import PurchaseProposalForm from "./PurchaseProposalForm"
-
-export type PurchaseRequest = {
-  requestId: string
-  userId: string
-  amount: number
-  type: "purchase"
-  status: "pending" | "approved" | "rejected"
-  createdAt: string
-  description?: string | null
-  purchaseId?: string | null
-  yesVotes: number
-  noVotes: number
-}
 
 export type UserSummary = {
   id: string

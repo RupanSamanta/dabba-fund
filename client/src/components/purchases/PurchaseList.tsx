@@ -2,18 +2,7 @@ import { Check, X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-
-type PurchaseRequest = {
-  requestId: string
-  userId: string
-  amount: number
-  type: "purchase"
-  status: "pending" | "approved" | "rejected"
-  createdAt: string
-  description?: string | null
-  yesVotes: number
-  noVotes: number
-}
+import type { PurchaseRequest } from "@/types/purchase"
 
 type PurchaseListProps = {
   purchases: PurchaseRequest[]
