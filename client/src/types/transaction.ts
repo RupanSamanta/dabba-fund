@@ -3,5 +3,6 @@ export interface Transaction {
     type: "addition" | "purchase" | "withdraw";
     amount: number;
     name: string;
+    description?: string | null;
     time: Date;
 }

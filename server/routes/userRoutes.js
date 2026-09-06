@@ -5,7 +5,8 @@ const router = express.Router();
 
 router.get("/users", (req, res) => {
     db.query(`SELECT u.id, u.first_name as firstname, u.last_name as lastname, u.email,
-            u.is_admin as isAdmin, COALESCE(SUM(t.amount), 0) AS amount
+            u.is_admin as isAdmin,
+            COALESCE(SUM(CASE WHEN t.type = 'addition' THEN t.amount ELSE 0 END), 0) AS amount
         FROM users u
         LEFT JOIN transactions t
             ON u.id = t.uid

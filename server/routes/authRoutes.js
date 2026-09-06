@@ -19,7 +19,7 @@ router.post("/signup", (req, res) => {
         } else {
             db.query(
                 "INSERT INTO users (id, first_name, last_name, email, password, is_admin) VALUES (?, ?, ?, ?, ?, ?)",
-                [id, firstname, lastname, email, hashpassword, true],
+                [id, firstname, lastname, email, hashpassword, false],
                 (err, result) => {
                     if (err) {
                         res.status(500).send(err);
@@ -29,7 +29,7 @@ router.post("/signup", (req, res) => {
                             firstname,
                             lastname,
                             email,
-                            isAdmin: true,
+                            isAdmin: false,
                         });
                     }
                 },

@@ -67,7 +67,10 @@ const LedgerList = ({ transactions }: LedgerListProps) => {
                     ) : (
                         transactions.map((transaction) => {
                             const contributorName = transaction.name || "User";
-                            const contributorInitials = contributorName
+                            const transactionLabel = transaction.type === "purchase"
+                                ? transaction.description || "Purchase"
+                                : contributorName;
+                            const contributorInitials = transactionLabel
                                 .split(/\s+/)
                                 .filter(Boolean)
                                 .slice(0, 2)
@@ -93,7 +96,7 @@ const LedgerList = ({ transactions }: LedgerListProps) => {
                                         <div className="text-left">
                                             <div className="flex flex-wrap items-center gap-2">
                                                 <p className="font-semibold text-[#1c1917]">
-                                                    {contributorName}
+                                                    {transactionLabel}
                                                 </p>
                                                 <Badge
                                                     variant="outline"

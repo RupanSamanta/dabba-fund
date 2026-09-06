@@ -13,12 +13,12 @@ const createRequestRow = async (connection, requestId, userId, amount, type = "a
     );
 };
 
-const createApprovedTransaction = async (connection, userId, amount, transactionType = "addition") => {
+const createApprovedTransaction = async (connection, userId, amount, transactionType = "addition", description = null, purchaseRequestId = null) => {
     const transactionId = crypto.randomUUID();
 
     await connection.query(
-        "INSERT INTO transactions (tid, uid, amount, type, created_at) VALUES (?, ?, ?, ?, NOW())",
-        [transactionId, userId, amount, transactionType]
+        "INSERT INTO transactions (tid, uid, amount, type, created_at, description, purchase_request_id) VALUES (?, ?, ?, ?, NOW(), ?, ?)",
+        [transactionId, userId, amount, transactionType, description, purchaseRequestId]
     );
 
     return { transactionId };
@@ -66,7 +66,20 @@ const getPurchaseVoteSummary = async (purchaseId, queryExecutor = db.promise()) 
 };
 
 router.get("/transactions", (req, res) => {
-    db.query(`SELECT u.first_name as name, t.tid as id, t.amount, t.type, t.created_at as time
+    db.query(`SELECT u.first_name as name, t.tid as id, t.amount, t.type,
+                COALESCE(t.description, (
+                    SELECT r.description
+                    FROM requests r
+                    WHERE t.type = 'purchase'
+                        AND r.type = 'purchase'
+                        AND r.status = 'approved'
+                        AND r.uid = t.uid
+                        AND r.amount = t.amount
+                        AND r.created_at <= t.created_at
+                    ORDER BY r.created_at DESC
+                    LIMIT 1
+                )) as description,
+                t.created_at as time
             FROM transactions t
             INNER JOIN users u
             ON t.uid = u.id
@@ -119,11 +132,14 @@ router.get("/fund-requests", async (req, res) => {
             const [rows] = await db.promise().query(
                 `SELECT request_id as requestId, uid as userId, amount, type, status, created_at as createdAt, description, purchase_id as purchaseId,
                     (SELECT COUNT(*) FROM purchase_votes WHERE purchase_id = requests.request_id AND vote = 'yes') as yesVotes,
-                    (SELECT COUNT(*) FROM purchase_votes WHERE purchase_id = requests.request_id AND vote = 'no') as noVotes
+                    (SELECT COUNT(*) FROM purchase_votes WHERE purchase_id = requests.request_id AND vote = 'no') as noVotes,
+                    (SELECT vote FROM purchase_votes WHERE purchase_id = requests.request_id AND uid = ? LIMIT 1) as userVote,
+                    EXISTS (SELECT 1 FROM purchase_votes WHERE purchase_id = requests.request_id AND uid = ?) as hasVoted
                  FROM requests
                  WHERE type = 'purchase'
                  ${isAdmin ? "AND status = 'pending'" : ""}
-                 ORDER BY created_at DESC`
+                 ORDER BY created_at DESC`,
+                [userId, userId]
             );
 
             return res.send(rows);
@@ -264,7 +280,7 @@ router.post("/fund-requests/:requestId/vote", async (req, res) => {
 
     try {
         const [requestRows] = await db.promise().query(
-            "SELECT request_id, uid, amount, type, status FROM requests WHERE request_id = ? LIMIT 1",
+            "SELECT request_id, uid, amount, type, status, description FROM requests WHERE request_id = ? LIMIT 1",
             [requestId]
         );
 
@@ -316,7 +332,7 @@ router.post("/fund-requests/:requestId/vote", async (req, res) => {
                 );
 
                 if (finalStatus === "approved") {
-                    await createApprovedTransaction(connection, request.uid, request.amount, "purchase");
+                    await createApprovedTransaction(connection, request.uid, request.amount, "purchase", request.description, requestId);
                 }
             }
 
@@ -361,7 +377,7 @@ router.post("/fund-requests/:requestId/decision", async (req, res) => {
         }
 
         const [requestRows] = await db.promise().query(
-            "SELECT uid, amount, type FROM requests WHERE request_id = ? LIMIT 1",
+            "SELECT uid, amount, type, description FROM requests WHERE request_id = ? LIMIT 1",
             [requestId]
         );
 
@@ -380,7 +396,7 @@ router.post("/fund-requests/:requestId/decision", async (req, res) => {
             }
 
             if (decision === "approve" && request.type === "purchase") {
-                await createApprovedTransaction(connection, request.uid, request.amount, "purchase");
+                await createApprovedTransaction(connection, request.uid, request.amount, "purchase", request.description, requestId);
             }
 
             const statusValue = decision === "approve" ? "approved" : "rejected";

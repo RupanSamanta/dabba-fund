@@ -9,4 +9,6 @@ export type PurchaseRequest = {
   purchaseId?: string | null
   yesVotes: number
   noVotes: number
+  userVote?: "yes" | "no" | null
+  hasVoted?: boolean
 }

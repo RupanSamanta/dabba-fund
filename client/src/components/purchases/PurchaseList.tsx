@@ -25,6 +25,8 @@ const PurchaseList = ({ purchases, userNames, totalUsers, onVote }: PurchaseList
       <CardContent className="gap-0 px-0">
         {purchases.map((purchase) => {
           const displayName = userNames[purchase.userId] || purchase.userId
+          const hasUserVoted = Boolean(purchase.hasVoted || purchase.userVote)
+          const userVoteLabel = purchase.userVote === "yes" ? "You voted yes" : purchase.userVote === "no" ? "You voted no" : "You already voted"
 
           return (
             <div key={purchase.requestId} className="border-b border-[#eee2cf] bg-white/35 p-4 last:border-b-0">
@@ -53,7 +55,7 @@ const PurchaseList = ({ purchases, userNames, totalUsers, onVote }: PurchaseList
                   {purchase.description ? <p className="text-sm text-[#766754]">{purchase.description}</p> : null}
                 </div>
 
-                {purchase.status === "pending" ? (
+                {purchase.status === "pending" && !hasUserVoted ? (
                   <div className="flex gap-2">
                     <Button
                       type="button"
@@ -71,6 +73,10 @@ const PurchaseList = ({ purchases, userNames, totalUsers, onVote }: PurchaseList
                       <Check size={14} className="mr-1" /> Yes
                     </Button>
                   </div>
+                ) : null}
+
+                {purchase.status === "pending" && hasUserVoted ? (
+                  <span className="text-xs font-medium text-[#4c6b60]">{userVoteLabel}</span>
                 ) : null}
               </div>
 
