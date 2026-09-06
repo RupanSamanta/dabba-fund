@@ -1,23 +1,27 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { fileURLToPath, URL } from 'node:url'
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, '.', '')
+
+  return {
+    plugins: [react(), tailwindcss()],
+    resolve: {
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url)),
+      },
     },
-  },
-  server: {
-    proxy: {
-      '/auth': 'http://localhost:8888',
-      '/api': 'http://localhost:8888',
-      '/contributors': 'http://localhost:8888',
-      '/transactions': 'http://localhost:8888',
+    server: {
+      proxy: {
+        '/auth': env.VITE_DEV_API_URL || 'http://localhost:8888',
+        '/api': env.VITE_DEV_API_URL || 'http://localhost:8888',
+        '/contributors': env.VITE_DEV_API_URL || 'http://localhost:8888',
+        '/transactions': env.VITE_DEV_API_URL || 'http://localhost:8888',
+      },
     },
-  },
-  base: '/dabba-fund/'
+    base: env.VITE_BASE_PATH || '/',
+  }
 })
