@@ -66,7 +66,7 @@ const getPurchaseVoteSummary = async (purchaseId, queryExecutor = db.promise()) 
 };
 
 router.get("/transactions", (req, res) => {
-    db.query(`SELECT u.first_name as name, t.tid as id, t.amount, t.type,
+    db.query(`SELECT t.uid, u.first_name as name, t.tid as id, t.amount, t.type,
                 COALESCE(t.description, (
                     SELECT r.description
                     FROM requests r

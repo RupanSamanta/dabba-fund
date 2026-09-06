@@ -1,5 +1,6 @@
 export interface Transaction {
     id: string;
+    uid: string;
     type: "addition" | "purchase" | "withdraw";
     amount: number;
     name: string;

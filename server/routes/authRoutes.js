@@ -24,12 +24,20 @@ router.post("/signup", (req, res) => {
                     if (err) {
                         res.status(500).send(err);
                     } else {
-                        res.status(201).send({
-                            id,
-                            firstname,
-                            lastname,
-                            email,
-                            isAdmin: false,
+                        db.query("SELECT created_at FROM users WHERE id = ?", [id], (createdAtError, createdAtRows) => {
+                            if (createdAtError) {
+                                res.status(500).send({ message: createdAtError.message });
+                                return;
+                            }
+
+                            res.status(201).send({
+                                id,
+                                firstname,
+                                lastname,
+                                email,
+                                isAdmin: false,
+                                createdAt: createdAtRows[0]?.created_at,
+                            });
                         });
                     }
                 },

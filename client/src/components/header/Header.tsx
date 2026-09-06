@@ -1,10 +1,18 @@
-import { ArrowDownRight, ArrowUpRight, WalletCards } from "lucide-react"
+import { ArrowDownRight, ArrowUpRight, CalendarDays, CircleDollarSign, Mail, UserRound, WalletCards } from "lucide-react"
 import { Avatar, AvatarFallback } from "../ui/avatar"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "../ui/dropdown-menu"
 import { useAuth } from "@/context/useAuth"
 import { api } from "@/lib/api"
 import { useEffect, useMemo, useState } from "react"
 import { useLocation } from "react-router-dom"
 import type { Transaction } from "@/types/transaction"
+import type { Contributor } from "@/types/contributor"
 
 const Header = () => {
     const { authData } = useAuth();
@@ -13,19 +21,24 @@ const Header = () => {
     const initials = `${authData?.firstname[0] ?? "U"}${authData?.firstname[1] ?? ""}`.toUpperCase();
 
     const [transactions, setTransactions] = useState<Transaction[]>([]);
+    const [profile, setProfile] = useState<Contributor | null>(null);
 
     useEffect(() => {
         const fetchTransactions = async () => {
             try {
-                const result = await api.get<Transaction[]>("/api/transactions");
-                setTransactions(result.data);
+                const [transactionsResult, usersResult] = await Promise.all([
+                    api.get<Transaction[]>("/api/transactions"),
+                    api.get<Contributor[]>("/api/users"),
+                ]);
+                setTransactions(transactionsResult.data);
+                setProfile(usersResult.data.find((user) => user.id === authData?.id) ?? null);
             } catch (error) {
                 console.error("Failed to fetch transactions", error);
             }
         }
 
         void fetchTransactions();
-    }, [location.pathname]);
+    }, [authData?.id, location.pathname]);
 
     const lastUpdated = useMemo(() => {
         if (transactions.length === 0) return "No updates yet";
@@ -51,6 +64,14 @@ const Header = () => {
     const spent = useMemo(() => transactions.filter((transaction) => transaction.type === "purchase" || transaction.type === "withdraw")
         .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0), [transactions]);
 
+    const totalContributed = useMemo(() => transactions
+        .filter((transaction) => transaction.uid === authData?.id && transaction.type === "addition")
+        .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0), [authData?.id, transactions]);
+
+    const joinedDate = (profile?.createdAt ?? authData?.createdAt)
+        ? new Date(profile?.createdAt ?? authData?.createdAt ?? "").toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+        : "Unknown";
+
     return (
         <header className="relative w-full overflow-hidden rounded-b-[2rem] bg-[#251d17] px-5 pb-6 pt-5 text-[#fff8ec] shadow-xl shadow-[#251d17]/10 sm:px-7">
             <div className="pointer-events-none absolute -right-10 -top-20 size-48 rounded-full bg-[#d8a03d]/20 blur-3xl" />
@@ -65,14 +86,35 @@ const Header = () => {
                     </div>
                 </div>
                 <div className="flex flex-col items-end gap-1 text-right">
-                    <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 p-1 pr-2 text-sm backdrop-blur">
-                        <Avatar size="sm">
-                            <AvatarFallback className="bg-[#3f7f6f] text-white">
-                                {initials}
-                            </AvatarFallback>
-                        </Avatar>
-                        <span className="max-w-28 truncate">{name}</span>
-                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 p-1 pr-2 text-sm text-[#fff8ec] backdrop-blur outline-none hover:bg-white/15">
+                            <Avatar size="sm">
+                                <AvatarFallback className="bg-[#3f7f6f] text-white">
+                                    {initials}
+                                </AvatarFallback>
+                            </Avatar>
+                            <span className="max-w-28 truncate">{authData?.firstname ?? "User"}</span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                            <DropdownMenuItem className="cursor-default gap-2 hover:bg-transparent focus:bg-transparent">
+                                <UserRound size={16} className="text-[#b08238]" />
+                                <span className="font-bold">{name}</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-default gap-2 text-[#766754] hover:bg-transparent focus:bg-transparent">
+                                <Mail size={16} className="text-[#b08238]" />
+                                {authData?.email ?? "Unknown email"}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="cursor-default justify-between hover:bg-transparent focus:bg-transparent">
+                                <span className="flex items-center gap-2 text-[#766754]"><CircleDollarSign size={16} className="text-[#b08238]" />Contribution</span>
+                                <span className="font-bold">₹{totalContributed}</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="cursor-default justify-between hover:bg-transparent focus:bg-transparent">
+                                <span className="flex items-center gap-2 text-[#766754]"><CalendarDays size={16} className="text-[#b08238]" />Joined</span>
+                                <span className="font-bold">{joinedDate}</span>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
             <div className="relative mt-8 text-left">
