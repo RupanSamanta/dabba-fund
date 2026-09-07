@@ -22,17 +22,17 @@ const PurchaseList = ({ purchases, userNames, totalUsers, onVote }: PurchaseList
 
   return (
     <Card className="gap-0 overflow-hidden rounded-2xl border-[#e4d3b6] bg-[#fff8ec] py-0 text-[#2c2825] shadow-md shadow-[#7c4f18]/5 ring-1">
-      <CardContent className="gap-0 px-0">
+      <CardContent className="gap-3 p-4">
         {purchases.map((purchase) => {
           const displayName = userNames[purchase.userId] || purchase.userId
           const hasUserVoted = Boolean(purchase.hasVoted || purchase.userVote)
           const userVoteLabel = purchase.userVote === "yes" ? "You voted yes" : purchase.userVote === "no" ? "You voted no" : "You already voted"
 
           return (
-            <div key={purchase.requestId} className="border-b border-[#eee2cf] bg-white/35 p-4 last:border-b-0">
+            <div key={purchase.requestId} className="border border-[#eee2cf] bg-white/70 p-4 rounded-2xl">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1 text-left">
-                  <p className="font-semibold text-[#1c1917]">{displayName}</p>
+                  <p className="font-semibold text-[#1c1917]">{purchase.description} </p>
                   <p className="text-sm text-[#766754]">{new Date(purchase.createdAt).toLocaleString()}</p>
                 </div>
 
@@ -52,7 +52,7 @@ const PurchaseList = ({ purchases, userNames, totalUsers, onVote }: PurchaseList
               <div className="mt-3 flex items-center justify-between gap-3">
                 <div>
                   <p className="text-lg font-black text-[#251d17]">₹{purchase.amount}</p>
-                  {purchase.description ? <p className="text-sm text-[#766754]">{purchase.description}</p> : null}
+                  {purchase.description ? <p className="text-sm text-[#766754]">{displayName}</p> : null}
                 </div>
 
                 {purchase.status === "pending" && !hasUserVoted ? (

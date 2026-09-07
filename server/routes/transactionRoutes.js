@@ -41,6 +41,43 @@ const getFundBalance = async () => {
     return additionTotal - purchaseTotal - withdrawTotal;
 };
 
+const getContributorBalances = async (queryExecutor = db.promise()) => {
+    const [rows] = await queryExecutor.query(`
+        SELECT u.id,
+            FLOOR(COALESCE(SUM(CASE WHEN t.type = 'addition' THEN t.amount ELSE 0 END), 0)
+                - COALESCE((
+                    SELECT SUM(shared.amount / NULLIF((
+                        SELECT COUNT(*)
+                        FROM users eligible_users
+                        WHERE eligible_users.created_at <= shared.created_at
+                    ), 0))
+                    FROM transactions shared
+                    WHERE shared.type IN ('purchase', 'withdraw')
+                        AND shared.created_at >= u.created_at
+                ), 0)) AS amount
+        FROM users u
+        LEFT JOIN transactions t ON u.id = t.uid
+        GROUP BY u.id, u.created_at
+    `);
+
+    return rows.map((row) => ({ id: row.id, amount: Number(row.amount || 0) }));
+};
+
+const getPurchaseImpact = async (amount, queryExecutor = db.promise()) => {
+    const contributors = await getContributorBalances(queryExecutor);
+    const share = contributors.length > 0 ? amount / contributors.length : amount;
+    const projectedContributors = contributors.map((contributor) => ({
+        ...contributor,
+        projectedAmount: contributor.amount - share,
+    }));
+
+    return {
+        share,
+        contributors: projectedContributors,
+        affordable: projectedContributors.every((contributor) => contributor.projectedAmount >= 0),
+    };
+};
+
 const getPurchaseVoteSummary = async (purchaseId, queryExecutor = db.promise()) => {
     const [voteRows] = await queryExecutor.query(
         "SELECT vote, COUNT(*) AS total FROM purchase_votes WHERE purchase_id = ? GROUP BY vote",
@@ -97,6 +134,20 @@ router.get("/fund-balance", async (req, res) => {
     try {
         const balance = await getFundBalance();
         return res.send({ balance });
+    } catch (error) {
+        return res.status(500).send({ message: error.message });
+    }
+});
+
+router.get("/purchase-impact", async (req, res) => {
+    const amount = Number(req.query.amount);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+        return res.status(400).send({ message: "Valid purchase amount is required." });
+    }
+
+    try {
+        return res.send(await getPurchaseImpact(amount));
     } catch (error) {
         return res.status(500).send({ message: error.message });
     }
@@ -227,6 +278,15 @@ router.post("/fund-requests", async (req, res) => {
                     await connection.rollback();
                     return res.status(400).send({ message: "Purchase amount must be less than the current fund balance." });
                 }
+
+                const impact = await getPurchaseImpact(amount, connection);
+                if (!impact.affordable) {
+                    await connection.rollback();
+                    return res.status(400).send({
+                        message: `Purchase blocked: each member would contribute ₹${impact.share.toFixed(2)}, which would make at least one balance negative. Add money to the jar first.`,
+                        impact,
+                    });
+                }
             }
 
             const purchaseId = requestType === "purchase" ? requestId : null;
@@ -326,6 +386,18 @@ router.post("/fund-requests/:requestId/vote", async (req, res) => {
 
             if (summary.allVotesCast) {
                 const finalStatus = summary.yes > summary.no ? "approved" : "rejected";
+
+                if (finalStatus === "approved") {
+                    const impact = await getPurchaseImpact(Number(request.amount), connection);
+                    if (!impact.affordable) {
+                        await connection.rollback();
+                        return res.status(400).send({
+                            message: "Purchase blocked: current member balances cannot cover this equal share. Add money to the jar first.",
+                            impact,
+                        });
+                    }
+                }
+
                 await connection.query(
                     "UPDATE requests SET status = ? WHERE request_id = ?",
                     [finalStatus, requestId]
@@ -396,6 +468,14 @@ router.post("/fund-requests/:requestId/decision", async (req, res) => {
             }
 
             if (decision === "approve" && request.type === "purchase") {
+                const impact = await getPurchaseImpact(Number(request.amount), connection);
+                if (!impact.affordable) {
+                    await connection.rollback();
+                    return res.status(400).send({
+                        message: "Purchase blocked: current member balances cannot cover this equal share. Add money to the jar first.",
+                        impact,
+                    });
+                }
                 await createApprovedTransaction(connection, request.uid, request.amount, "purchase", request.description, requestId);
             }
 

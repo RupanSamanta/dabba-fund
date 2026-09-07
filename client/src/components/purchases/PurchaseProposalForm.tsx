@@ -2,13 +2,21 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+type MemberBalance = {
+  id: string
+  firstname: string
+  lastname: string
+  amount: number
+}
+
 type PurchaseProposalFormProps = {
   balance: number
+  memberBalances: MemberBalance[]
   onSubmit: (proposal: { title: string; amount: number; note: string }) => Promise<void> | void
   onCancel: () => void
 }
 
-export const PurchaseProposalForm = ({ balance, onSubmit, onCancel }: PurchaseProposalFormProps) => {
+export const PurchaseProposalForm = ({ balance, memberBalances, onSubmit, onCancel }: PurchaseProposalFormProps) => {
   const [proposal, setProposal] = useState({
     title: "",
     amount: "",
@@ -30,12 +38,24 @@ export const PurchaseProposalForm = ({ balance, onSubmit, onCancel }: PurchasePr
       return
     }
 
+    if (memberBalances.some((member) => member.amount - amount / memberBalances.length < 0)) {
+      return
+    }
+
     await onSubmit({
       title,
       amount,
       note,
     })
   }
+
+  const amount = Number(proposal.amount)
+  const share = memberBalances.length > 0 ? amount / memberBalances.length : amount
+  const projectedBalances = memberBalances.map((member) => ({
+    ...member,
+    projectedAmount: member.amount - share,
+  }))
+  const hasInsufficientBalance = amount > 0 && projectedBalances.some((member) => member.projectedAmount < 0)
 
   return (
     <Card className="overflow-hidden rounded-2xl border-[#e4d3b6] bg-[#fff8ec] shadow-md shadow-[#7c4f18]/5 ring-1 py-0">
@@ -59,6 +79,30 @@ export const PurchaseProposalForm = ({ balance, onSubmit, onCancel }: PurchasePr
               className="w-full rounded-xl border border-[#e4d3b6] bg-white/80 px-3 py-2.5 text-base text-[#251d17] outline-none transition placeholder:text-[#a39280] focus:border-[#b08238] focus:ring-2 focus:ring-[#b08238]/20"
             />
           </label>
+
+          {amount > 0 && memberBalances.length > 0 ? (
+            <details className="rounded-xl border border-[#e4d3b6] bg-[#fffdf8] px-3 py-2 text-left">
+              <summary className="cursor-pointer text-sm font-semibold text-[#5d472d]">
+                Expected balance after purchase: ₹{share.toFixed(2)} each
+              </summary>
+              <div className="mt-2 space-y-1 border-t border-[#eee2cf] pt-2 text-xs text-[#766754]">
+                {projectedBalances.map((member) => (
+                  <div key={member.id} className="flex justify-between gap-3">
+                    <span>{member.firstname} {member.lastname}</span>
+                    <span className={member.projectedAmount < 0 ? "font-bold text-red-700" : "font-medium text-[#3f7f6f]"}>
+                      ₹{member.projectedAmount.toFixed(2)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </details>
+          ) : null}
+
+          {hasInsufficientBalance ? (
+            <p className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm font-semibold text-red-800">
+              Purchase blocked: at least one member would have a negative balance. Add money to the jar first.
+            </p>
+          ) : null}
 
           <label className="block text-left">
             <span className="mb-1.5 block text-xs font-semibold uppercase tracking-[0.14em] text-[#766754]">
@@ -100,7 +144,7 @@ export const PurchaseProposalForm = ({ balance, onSubmit, onCancel }: PurchasePr
             >
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-[#251d17] text-[#fff8ec] hover:bg-[#3a2a20]">
+            <Button type="submit" disabled={hasInsufficientBalance} className="flex-1 bg-[#251d17] text-[#fff8ec] hover:bg-[#3a2a20]">
               Propose
             </Button>
           </div>

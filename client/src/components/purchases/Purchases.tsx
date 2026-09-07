@@ -10,12 +10,14 @@ export type UserSummary = {
   id: string
   firstname: string
   lastname: string
+  amount: number
 }
 
 const Purchases = () => {
   const { authData } = useAuth()
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [requests, setRequests] = useState<PurchaseRequest[]>([])
+  const [memberBalances, setMemberBalances] = useState<UserSummary[]>([])
   const [userNames, setUserNames] = useState<Record<string, string>>({})
   const [balance, setBalance] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -49,6 +51,7 @@ const Purchases = () => {
         })
 
         setBalance(balanceResponse.data.balance)
+        setMemberBalances(usersResponse.data)
         setUserNames(namesById)
         setRequests(requestsResponse.data)
         setMessage("")
@@ -86,6 +89,7 @@ const Purchases = () => {
       })
 
       setBalance(balanceResponse.data.balance)
+      setMemberBalances(usersResponse.data)
       setUserNames(namesById)
       setRequests(requestsResponse.data)
     } catch (error: unknown) {
@@ -156,7 +160,12 @@ const Purchases = () => {
       </div>
 
       {isFormOpen ? (
-        <PurchaseProposalForm balance={balance} onSubmit={handleSubmit} onCancel={() => setIsFormOpen(false)} />
+        <PurchaseProposalForm
+          balance={balance}
+          memberBalances={memberBalances}
+          onSubmit={handleSubmit}
+          onCancel={() => setIsFormOpen(false)}
+        />
       ) : null}
 
       {message ? <p className="text-sm font-medium text-[#3f7f6f]">{message}</p> : null}

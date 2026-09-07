@@ -8,9 +8,15 @@ router.get("/users", (req, res) => {
             u.is_admin as isAdmin,
             FLOOR(COALESCE(SUM(CASE WHEN t.type = 'addition' THEN t.amount ELSE 0 END), 0)
                 - COALESCE((
-                    SELECT SUM(CASE WHEN shared.type IN ('purchase', 'withdraw') THEN shared.amount ELSE 0 END)
+                    SELECT SUM(shared.amount / NULLIF((
+                        SELECT COUNT(*)
+                        FROM users eligible_users
+                        WHERE eligible_users.created_at <= shared.created_at
+                    ), 0))
                     FROM transactions shared
-                ) / NULLIF((SELECT COUNT(*) FROM users), 0), 0)) AS amount
+                    WHERE shared.type IN ('purchase', 'withdraw')
+                        AND shared.created_at >= u.created_at
+                ), 0)) AS amount
         FROM users u
         LEFT JOIN transactions t
             ON u.id = t.uid
