@@ -180,7 +180,7 @@ const Purchases = () => {
         </div>
 
         {isLoading ? (
-          <p className="text-sm text-[#766754]">Loading purchases...</p>
+          <p className="text-sm text-[#766754] p-5 rounded-2xl border-[#e4d3b6] bg-[#fff8ec] shadow-md shadow-[#7c4f18]/5">Loading purchases...</p>
         ) : (
           <PurchaseList purchases={requests} userNames={userNames} totalUsers={Object.keys(userNames).length} onVote={handleVote} />
         )}

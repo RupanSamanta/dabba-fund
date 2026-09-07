@@ -100,7 +100,7 @@ const Requests = () => {
             <RequestsHeader count={requests.length} isAdmin={isAdmin} />
 
             <Card className="overflow-hidden rounded-2xl border-[#e4d3b6] bg-[#fff8ec] shadow-md shadow-[#7c4f18]/5 ring-1 py-0">
-                <CardContent className="space-y-3 px-5 py-5">
+                <CardContent className="space-y-3 p-5">
                     {message ? <p className="text-sm font-medium text-[#3f7f6f]">{message}</p> : null}
 
                     {isLoading ? (

@@ -10,6 +10,8 @@ import Requests from "./components/requests/Requests"
 import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 import { useAuth } from "./context/useAuth"
 
+import { Analytics } from "@vercel/analytics/next"
+
 function App() {
   const { isAuthenticated, authData } = useAuth()
   const location = useLocation()
@@ -37,6 +39,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!isAuthRoute && isAuthenticated && <Footer />}
+      <Analytics />
     </>
   )
 }
