@@ -244,7 +244,6 @@ router.get("/fund-requests", async (req, res) => {
 router.post("/fund-requests", async (req, res) => {
     const amount = Number(req.body.amount);
     const userId = getUserId(req);
-    const isAdminRequest = String(req.body.isAdmin || "false") === "true";
     const requestType = String(req.body.type || "add_money").toLowerCase();
     const description = req.body.description || null;
 
@@ -272,6 +271,17 @@ router.post("/fund-requests", async (req, res) => {
         try {
             await connection.beginTransaction();
 
+            const [requesterRows] = await connection.query(
+                "SELECT id, is_admin FROM users WHERE id = ? LIMIT 1",
+                [userId]
+            );
+            if (!requesterRows.length) {
+                await connection.rollback();
+                return res.status(404).send({ message: "User not found." });
+            }
+
+            const requesterIsAdmin = Boolean(requesterRows[0].is_admin);
+
             if (requestType === "purchase") {
                 const balance = await getFundBalance();
                 if (amount >= balance) {
@@ -292,13 +302,7 @@ router.post("/fund-requests", async (req, res) => {
             const purchaseId = requestType === "purchase" ? requestId : null;
             await createRequestRow(connection, requestId, userId, amount, requestType, description, purchaseId);
 
-            if (isAdminRequest && requestType === "add_money") {
-                const [userRows] = await connection.query("SELECT id, is_admin FROM users WHERE id = ?", [userId]);
-                if (!userRows.length || !Boolean(userRows[0].is_admin)) {
-                    await connection.rollback();
-                    return res.status(403).send({ message: "Only admins can submit immediate approvals." });
-                }
-
+            if (requesterIsAdmin && requestType === "add_money") {
                 await createApprovedTransaction(connection, userId, amount, "addition");
 
                 await connection.query(
@@ -309,9 +313,9 @@ router.post("/fund-requests", async (req, res) => {
 
             await connection.commit();
             return res.status(201).send({
-                message: isAdminRequest && requestType === "add_money" ? "Fund request approved immediately." : "Request submitted for approval.",
+                message: requesterIsAdmin && requestType === "add_money" ? "Fund request approved immediately." : "Request submitted for approval.",
                 requestId,
-                status: isAdminRequest && requestType === "add_money" ? "approved" : "pending",
+                status: requesterIsAdmin && requestType === "add_money" ? "approved" : "pending",
                 type: requestType,
             });
         } catch (error) {

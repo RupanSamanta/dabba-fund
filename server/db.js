@@ -6,6 +6,7 @@ const db = mysql.createPool({
     user: process.env.DB_USER || "root",
     password: process.env.DB_PASSWORD || "",
     database: process.env.DB_NAME || "dabbafund",
+    timezone: "Z",
     connectionLimit: 10,
 });
 

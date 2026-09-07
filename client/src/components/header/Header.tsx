@@ -37,7 +37,10 @@ const Header = () => {
             }
         }
 
+        window.addEventListener("fund-updated", fetchTransactions);
         void fetchTransactions();
+
+        return () => window.removeEventListener("fund-updated", fetchTransactions);
     }, [authData?.id, location.pathname]);
 
     const lastUpdated = useMemo(() => {

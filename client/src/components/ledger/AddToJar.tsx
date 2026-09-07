@@ -49,6 +49,7 @@ const AddToJar = () => {
       })
 
       setMessage(response.data.message || "Request submitted.")
+  window.dispatchEvent(new Event("fund-updated"))
     } catch (error: any) {
       setMessage(error?.response?.data?.message || "Something went wrong while submitting your request.")
     } finally {

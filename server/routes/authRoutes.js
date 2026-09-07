@@ -18,13 +18,13 @@ router.post("/signup", (req, res) => {
             res.status(500).send(error);
         } else {
             db.query(
-                "INSERT INTO users (id, first_name, last_name, email, password, is_admin) VALUES (?, ?, ?, ?, ?, ?)",
-                [id, firstname, lastname, email, hashpassword, false],
+                "INSERT INTO users (id, first_name, last_name, email, password) VALUES (?, ?, ?, ?, ?)",
+                [id, firstname, lastname, email, hashpassword],
                 (err, result) => {
                     if (err) {
                         res.status(500).send(err);
                     } else {
-                        db.query("SELECT created_at FROM users WHERE id = ?", [id], (createdAtError, createdAtRows) => {
+                        db.query("SELECT created_at, is_admin FROM users WHERE id = ?", [id], (createdAtError, createdAtRows) => {
                             if (createdAtError) {
                                 res.status(500).send({ message: createdAtError.message });
                                 return;
@@ -35,7 +35,7 @@ router.post("/signup", (req, res) => {
                                 firstname,
                                 lastname,
                                 email,
-                                isAdmin: false,
+                                isAdmin: Boolean(createdAtRows[0]?.is_admin),
                                 createdAt: createdAtRows[0]?.created_at,
                             });
                         });

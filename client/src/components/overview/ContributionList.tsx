@@ -47,7 +47,7 @@ export const ContributionList = ({ contributors, currentContributorId } : Contri
                                             )}
                                         </span>
 
-                                        {person.isAdmin && (
+                                        {Boolean(person.isAdmin) && (
                                             <Badge
                                                 variant="outline"
                                                 className="text-[10px] tracking-widest font-mono border-[#b08238] text-[#855b17] bg-transparent py-0 px-1.5 h-4 uppercase rounded-sm"
