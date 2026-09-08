@@ -1,4 +1,4 @@
-import { ArrowDownRight, ArrowUpRight, CalendarDays, CircleDollarSign, Mail, UserRound, WalletCards } from "lucide-react"
+import { ArrowDownRight, ArrowUpRight, CalendarDays, CircleDollarSign, Mail, MessageSquareWarning, UserRound, WalletCards } from "lucide-react"
 import { Avatar, AvatarFallback } from "../ui/avatar"
 import {
     DropdownMenu,
@@ -115,6 +115,10 @@ const Header = () => {
                             <DropdownMenuItem className="cursor-default justify-between hover:bg-transparent focus:bg-transparent">
                                 <span className="flex items-center gap-2 text-[#766754]"><CalendarDays size={16} className="text-[#b08238]" />Joined</span>
                                 <span className="font-bold">{joinedDate}</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="cursor-default justify-between hover:bg-transparent focus:bg-transparent">
+                                <span className="flex items-center gap-2 text-[#766754]"><MessageSquareWarning size={16} className="text-[#b08238]" />Provide Feedback</span>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

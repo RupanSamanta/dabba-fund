@@ -5,6 +5,7 @@ import { useAuth } from "@/context/useAuth"
 import type { PurchaseRequest } from "@/types/purchase"
 import PurchaseList from "./PurchaseList"
 import PurchaseProposalForm from "./PurchaseProposalForm"
+import { Spinner } from "../ui/spinner"
 
 export type UserSummary = {
   id: string
@@ -180,7 +181,7 @@ const Purchases = () => {
         </div>
 
         {isLoading ? (
-          <p className="text-sm text-[#766754] p-5 rounded-2xl border-[#e4d3b6] bg-[#fff8ec] shadow-md shadow-[#7c4f18]/5">Loading purchases...</p>
+          <div className="flex justify-center items-center gap-3 text-sm text-[#766754] p-5 rounded-2xl border-[#e4d3b6] bg-[#fff8ec] shadow-md shadow-[#7c4f18]/5"><Spinner /> Loading purchases...</div>
         ) : (
           <PurchaseList purchases={requests} userNames={userNames} totalUsers={Object.keys(userNames).length} onVote={handleVote} />
         )}

@@ -6,6 +6,7 @@ import RequestCard from "./RequestCard"
 import RequestsHeader from "./RequestsHeader"
 import type { Contributor } from "@/types/contributor"
 import type { FundRequest } from "../../types/request"
+import { Spinner } from "../ui/spinner"
 
 const Requests = () => {
     const { authData } = useAuth()
@@ -104,7 +105,7 @@ const Requests = () => {
                     {message ? <p className="text-sm font-medium text-[#3f7f6f]">{message}</p> : null}
 
                     {isLoading ? (
-                        <p className="text-sm text-[#766754]">Loading requests...</p>
+                        <div className="flex justify-center items-center gap-3 text-sm text-[#766754]"><Spinner /> Loading requests...</div>
                     ) : requests.length === 0 ? (
                         <div className="rounded-xl border border-dashed border-[#d9c7a4] bg-white/40 p-5 text-center text-sm text-[#766754]">
                             {isAdmin ? "No pending requests." : "You have not submitted any requests yet."}
