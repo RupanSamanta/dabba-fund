@@ -16,7 +16,6 @@ export const ContributionList = ({ contributors, currentContributorId }: Contrib
                         key={person.id}
                         className="flex items-center justify-between border-b border-[#eee2cf] bg-white/35 p-4 py-5 transition-colors last:border-b-0 hover:bg-[#f3e7d4]"
                     >
-                        {/* Left Side: Avatar + Details */}
                         <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
                                 <AvatarFallback className={"bg-[#b08238] text-white"}>
@@ -45,7 +44,6 @@ export const ContributionList = ({ contributors, currentContributorId }: Contrib
                             </div>
                         </div>
 
-                        {/* Right Side: Currency Amount */}
                         <div className="text-xl font-semibold text-[#1c1917]">
                             {"₹"}
                             {person.amount}

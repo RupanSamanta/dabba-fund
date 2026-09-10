@@ -1,25 +1,15 @@
-import { ArrowDownRight, ArrowUpRight, CalendarDays, CircleDollarSign, Mail, MessageSquareWarning, UserRound, WalletCards } from "lucide-react"
-import { Avatar, AvatarFallback } from "../ui/avatar"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "../ui/dropdown-menu"
+import { ArrowDownRight, ArrowUpRight, WalletCards } from "lucide-react"
 import { useAuth } from "@/context/useAuth"
 import { api } from "@/lib/api"
 import { useEffect, useMemo, useState } from "react"
 import { useLocation } from "react-router-dom"
 import type { Transaction } from "@/types/transaction"
 import type { Contributor } from "@/types/contributor"
+import UserProfileDropdown from "./UserProfileDropdown"
 
 const Header = () => {
     const { authData } = useAuth();
     const location = useLocation();
-    const name = authData ? `${authData.firstname} ${authData.lastname}` : "User";
-    const initials = `${authData?.firstname[0] ?? "U"}${authData?.firstname[1] ?? ""}`.toUpperCase();
-
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [profile, setProfile] = useState<Contributor | null>(null);
 
@@ -89,39 +79,7 @@ const Header = () => {
                     </div>
                 </div>
                 <div className="flex flex-col items-end gap-1 text-right">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 p-1 pr-2 text-sm text-[#fff8ec] backdrop-blur outline-none hover:bg-white/15">
-                            <Avatar size="sm">
-                                <AvatarFallback className="bg-[#3f7f6f] text-white">
-                                    {initials}
-                                </AvatarFallback>
-                            </Avatar>
-                            <span className="max-w-28 truncate">{authData?.firstname ?? "User"}</span>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem className="cursor-default gap-2 hover:bg-transparent focus:bg-transparent">
-                                <UserRound size={16} className="text-[#b08238]" />
-                                <span className="font-bold">{name}</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-default gap-2 text-[#766754] hover:bg-transparent focus:bg-transparent">
-                                <Mail size={16} className="text-[#b08238]" />
-                                {authData?.email ?? "Unknown email"}
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="cursor-default justify-between hover:bg-transparent focus:bg-transparent">
-                                <span className="flex items-center gap-2 text-[#766754]"><CircleDollarSign size={16} className="text-[#b08238]" />Contribution</span>
-                                <span className="font-bold">₹{totalContributed}</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="cursor-default justify-between hover:bg-transparent focus:bg-transparent">
-                                <span className="flex items-center gap-2 text-[#766754]"><CalendarDays size={16} className="text-[#b08238]" />Joined</span>
-                                <span className="font-bold">{joinedDate}</span>
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="cursor-default justify-between hover:bg-transparent focus:bg-transparent">
-                                <span className="flex items-center gap-2 text-[#766754]"><MessageSquareWarning size={16} className="text-[#b08238]" />Provide Feedback</span>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <UserProfileDropdown authData={authData} totalContributed={totalContributed} joinedDate={joinedDate} />
                 </div>
             </div>
             <div className="relative mt-8 text-left">
