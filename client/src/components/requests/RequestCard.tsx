@@ -1,3 +1,4 @@
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import type { FundRequest } from "../../types/request"
@@ -9,6 +10,8 @@ type RequestCardProps = {
 }
 
 const RequestCard = ({ request, userName, onDecision }: RequestCardProps) => {
+  const [pendingDecision, setPendingDecision] = useState<"approve" | "reject" | null>(null)
+
   const statusClasses = {
     pending: "border-[#d8c7ad] bg-[#f8f3e8] text-[#6c5a46]",
     approved: "border-[#bfe7d1] bg-[#edfaf4] text-[#2d7f5c]",
@@ -18,6 +21,17 @@ const RequestCard = ({ request, userName, onDecision }: RequestCardProps) => {
   const displayName = userName || request.userId
   const showActions = Boolean(onDecision)
   const requestTypeLabel = request.type === "purchase" ? "Purchase" : "Add money"
+
+  const handleDecision = async (action: "approve" | "reject") => {
+    if (!onDecision || pendingDecision) return
+
+    setPendingDecision(action)
+    try {
+      await onDecision(request.requestId, action)
+    } finally {
+      setPendingDecision(null)
+    }
+  }
 
   return (
     <div className="rounded-2xl border border-[#e4d3b6] bg-white/70 p-4">
@@ -46,17 +60,19 @@ const RequestCard = ({ request, userName, onDecision }: RequestCardProps) => {
             <Button
               type="button"
               variant="outline"
+              disabled={pendingDecision !== null}
               className="border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-              onClick={() => onDecision?.(request.requestId, "reject")}
+              onClick={() => handleDecision("reject")}
             >
-              Reject
+              {pendingDecision === "reject" ? "Rejecting..." : "Reject"}
             </Button>
             <Button
               type="button"
+              disabled={pendingDecision !== null}
               className="bg-[#3f7f6f] text-white hover:bg-[#2f625f]"
-              onClick={() => onDecision?.(request.requestId, "approve")}
+              onClick={() => handleDecision("approve")}
             >
-              Approve
+              {pendingDecision === "approve" ? "Approving..." : "Approve"}
             </Button>
           </div>
         ) : null}

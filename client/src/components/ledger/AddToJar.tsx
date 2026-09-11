@@ -1,8 +1,10 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { api } from "@/lib/api"
 import { useAuth } from "@/context/useAuth"
+import axios from "axios"
+import type { FundRequest } from "@/types/request"
 
 const presetAmounts = [10, 20, 30, 50]
 
@@ -12,9 +14,43 @@ const AddToJar = () => {
   const [customAmount, setCustomAmount] = useState("")
   const [isCustom, setIsCustom] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [hasPendingRequest, setHasPendingRequest] = useState(false)
   const [message, setMessage] = useState("")
 
   const currentAmount = isCustom ? Number(customAmount) || 0 : selectedAmount
+
+  useEffect(() => {
+    if (!authData?.id) {
+      return
+    }
+
+    let isCancelled = false
+
+    const loadPendingRequest = async () => {
+      try {
+        const response = await api.get<FundRequest[]>(`/api/fund-requests?userId=${authData.id}`)
+        if (!isCancelled) {
+          setHasPendingRequest(response.data.some((request) => request.type === "add_money" && request.status === "pending"))
+        }
+      } catch {
+        if (!isCancelled) {
+          setHasPendingRequest(false)
+        }
+      }
+    }
+
+    const handleFundUpdated = () => {
+      void loadPendingRequest()
+    }
+
+    void loadPendingRequest()
+    window.addEventListener("fund-updated", handleFundUpdated)
+
+    return () => {
+      isCancelled = true
+      window.removeEventListener("fund-updated", handleFundUpdated)
+    }
+  }, [authData?.id])
 
   const handlePresetClick = (amount: number) => {
     setSelectedAmount(amount)
@@ -49,23 +85,27 @@ const AddToJar = () => {
       })
 
       setMessage(response.data.message || "Request submitted.")
-  window.dispatchEvent(new Event("fund-updated"))
-    } catch (error: any) {
-      setMessage(error?.response?.data?.message || "Something went wrong while submitting your request.")
+      setHasPendingRequest(response.data.status === "pending")
+      window.dispatchEvent(new Event("fund-updated"))
+    } catch (error: unknown) {
+      const message = axios.isAxiosError(error)
+        ? error.response?.data?.message
+        : undefined
+      setMessage(message || "Something went wrong while submitting your request.")
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <Card className="overflow-hidden rounded-2xl border-[#e4d3b6] bg-[#fff8ec] shadow-md shadow-[#7c4f18]/5 ring-1 py-0">
-      <CardHeader className="px-5 pb-2 pt-4">
-        <CardTitle className="text-left text-xl font-black tracking-normal text-[#251d17] uppercase">
-          Add to the Jar
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="gap-4 px-5 pb-5">
+    <div className="space-y-2">
+      <Accordion disabled={hasPendingRequest} className="overflow-hidden rounded-2xl border border-[#e4d3b6] bg-[#fff8ec] px-5 shadow-md shadow-[#7c4f18]/5" defaultValue={[]}>
+        <AccordionItem value="add-to-jar" className="border-0">
+          <AccordionTrigger className="py-4 text-xl font-black tracking-normal text-[#251d17] uppercase hover:no-underline">
+            <span>Add to the Jar</span>
+          </AccordionTrigger>
+          <AccordionContent className="pb-0">
+            <div className="flex flex-col gap-4 pb-5">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {presetAmounts.map((amount) => {
             const isSelected = !isCustom && selectedAmount === amount
@@ -118,21 +158,28 @@ const AddToJar = () => {
           </label>
         )}
 
-        {message ? (
-          <p className="text-left text-sm font-medium text-[#3f7f6f]">{message}</p>
-        ) : null}
-
         <Button
           type="button"
           size="lg"
           className="w-full bg-[#251d17] text-[#fff8ec] hover:bg-[#3a2a20]"
-          disabled={currentAmount <= 0 || isSubmitting || !authData?.id}
+          disabled={currentAmount <= 0 || isSubmitting || hasPendingRequest || !authData?.id}
           onClick={handleRequestSubmit}
         >
           {isSubmitting ? "Submitting..." : `Add ₹${currentAmount || 0} to the jar`}
         </Button>
-      </CardContent>
-    </Card>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+      {hasPendingRequest ? (
+        <p className="rounded-xl border border-[#d8c7ad] bg-[#f8f3e8] px-3 py-2 text-left text-sm font-medium text-[#766754]">
+          You already have a request waiting for approval.
+        </p>
+      ) : null}
+      {message ? (
+        <p className="text-left text-sm font-medium text-[#3f7f6f]">{message}</p>
+      ) : null}
+    </div>
   )
 }
 
