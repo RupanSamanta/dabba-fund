@@ -1,12 +1,11 @@
 const express = require("express");
 const cors = require("cors");
+const app = express();
 require("dotenv").config();
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
 const transactionRoutes = require("./routes/transactionRoutes");
-
-const app = express();
 
 const allowedOrigins = (process.env.CLIENT_ORIGIN || "")
     .split(",")

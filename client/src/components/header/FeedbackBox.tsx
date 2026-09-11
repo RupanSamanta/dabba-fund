@@ -4,6 +4,7 @@ import { Field, FieldGroup } from "@/components/ui/field"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
+import { toast } from "../ui/toast"
 
 interface FeedbackBoxProps {
     open: boolean;
@@ -17,36 +18,47 @@ interface FeedbackBoxProps {
 
 const FeedbackBox = ({ open, onOpenChange, authData }: FeedbackBoxProps) => {
     const [message, setMessage] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleFeedbackSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
         event.preventDefault();
+        setIsSubmitting(true);
 
-        const trimmedMessage = message.trim();
-        if (!trimmedMessage) {
-            alert("Please enter your feedback");
-            return;
-        }
+        try {
+            const response = await fetch("https://api.web3forms.com/submit", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    access_key: import.meta.env.VITE_WEB3FORMS_ACCESS_KEY,
+                    name: `${authData?.firstname ?? ""} ${authData?.lastname ?? ""}`.trim() || "User",
+                    email: authData?.email || "",
+                    subject: "Feedback - Dubba Fund",
+                    message: message.trim(),
+                }),
+            });
+            const data = await response.json();
 
-        const formData = new FormData();
-        formData.append("access_key", import.meta.env.VITE_WEB_ACCESS_KEY);
-        formData.append("name", `${authData?.firstname ?? ""} ${authData?.lastname ?? ""}`.trim() || "User");
-        formData.append("email", authData?.email || "");
-        formData.append("subject", "Feedback - Dubba Fund");
-        formData.append("message", trimmedMessage);
-
-        const response = await fetch("https://api.web3forms.com/submit", {
-            method: "POST",
-            body: formData,
-        });
-
-        const data = await response.json();
-        if (response.ok) {
-            alert("Email sent");
-            setMessage("");
-            onOpenChange(false);
-            console.log(data);
-        } else {
-            alert("Error Occured");
+            if (response.ok && data.success) {
+                setMessage("");
+                onOpenChange(false);
+                toast.add({
+                    title: "Feedback sent successfully",
+                    type: "success"
+                });
+            } else {
+                toast.add({
+                    title: "Failed to send feedback",
+                    type: "error"
+                });
+            }
+        } catch (error) {
+            console.log("Error sending feedback:", error);
+            toast.add({
+                title: "Failed to send feedback",
+                type: "error"
+            });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -75,7 +87,9 @@ const FeedbackBox = ({ open, onOpenChange, authData }: FeedbackBoxProps) => {
                     </FieldGroup>
                     <DialogFooter>
                         <DialogClose render={<Button variant="outline">Cancel</Button>} />
-                        <Button type="submit" form="feedback-form">Submit feedback</Button>
+                        <Button type="submit" form="feedback-form" disabled={!message.trim() || isSubmitting}>
+                            {isSubmitting ? "Submitting..." : "Submit feedback"}
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </form>

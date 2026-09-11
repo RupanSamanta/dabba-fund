@@ -9,6 +9,7 @@ import SignupPage from "./components/auth/SignupPage"
 import Requests from "./components/requests/Requests"
 import { Navigate, Route, Routes, useLocation } from "react-router-dom"
 import { useAuth } from "./context/useAuth"
+import { Toaster } from "@/components/ui/toast"
 
 import { Analytics } from "@vercel/analytics/react"
 
@@ -40,6 +41,7 @@ function App() {
       </Routes>
       {!isAuthRoute && isAuthenticated && <Footer />}
       <Analytics />
+      <Toaster />
     </>
   )
 }

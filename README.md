@@ -44,6 +44,7 @@ Copy `client/.env.example` to `client/.env`:
 - `VITE_API_URL`: deployed API URL. Leave empty for same-origin hosting.
 - `VITE_BASE_PATH`: frontend base path, normally `/`; use `/dabba-fund/` for GitHub Pages.
 - `VITE_DEV_API_URL`: local Vite proxy target, normally `http://localhost:8888`.
+- `VITE_WEB3FORMS_ACCESS_KEY`: public Web3Forms access key used directly by the feedback form.
 
 ### Server
 
