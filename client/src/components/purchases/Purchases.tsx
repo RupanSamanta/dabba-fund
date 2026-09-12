@@ -25,6 +25,7 @@ const Purchases = () => {
   const [message, setMessage] = useState("")
 
   const approvedPurchases = requests.filter((purchase) => purchase.status === "approved")
+  const hasPendingProposal = requests.some((purchase) => purchase.status === "pending")
 
   useEffect(() => {
     if (!authData?.id) {
@@ -124,6 +125,10 @@ const Purchases = () => {
       setMessage("Purchase proposal submitted. Other members can vote on it now.")
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } }
+      if (err.response?.data?.message === "A purchase proposal is already awaiting votes.") {
+        await refreshData()
+        setIsFormOpen(false)
+      }
       setMessage(err.response?.data?.message || "Could not submit the purchase request.")
     }
   }
@@ -152,15 +157,17 @@ const Purchases = () => {
   return (
     <section className="space-y-5 p-5 pb-28">
 
-      <div
-        onClick={() => setIsFormOpen((open) => !open)}
-        className={`flex cursor-pointer justify-center items-center gap-3 rounded-xl bg-[#251d17] p-3 text-[#fff8ec] hover:bg-[#3a2a20] ${isFormOpen ? "hidden" : "flex"}`}
-      >
-        <Plus size={16} />
-        Propose a Purchase
-      </div>
+      {!hasPendingProposal ? (
+        <div
+          onClick={() => setIsFormOpen((open) => !open)}
+          className={`flex cursor-pointer justify-center items-center gap-3 rounded-xl bg-[#251d17] p-3 text-[#fff8ec] hover:bg-[#3a2a20] ${isFormOpen ? "hidden" : "flex"}`}
+        >
+          <Plus size={16} />
+          Propose a Purchase
+        </div>
+      ) : null}
 
-      {isFormOpen ? (
+      {isFormOpen && !hasPendingProposal ? (
         <PurchaseProposalForm
           balance={balance}
           memberBalances={memberBalances}

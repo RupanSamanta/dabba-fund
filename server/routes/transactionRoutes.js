@@ -283,6 +283,14 @@ router.post("/fund-requests", async (req, res) => {
             const requesterIsAdmin = Boolean(requesterRows[0].is_admin);
 
             if (requestType === "purchase") {
+                const [pendingPurchaseRows] = await connection.query(
+                    "SELECT request_id FROM requests WHERE type = 'purchase' AND status = 'pending' LIMIT 1 FOR UPDATE"
+                );
+                if (pendingPurchaseRows.length) {
+                    await connection.rollback();
+                    return res.status(409).send({ message: "A purchase proposal is already awaiting votes." });
+                }
+
                 const balance = await getFundBalance();
                 if (amount >= balance) {
                     await connection.rollback();
