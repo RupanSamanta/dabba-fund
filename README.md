@@ -10,6 +10,18 @@ A contribution and transaction tracker for managing a shared fund, contributors,
 
 The frontend and API are deployed separately. The frontend needs the public API URL, and the API needs access to a managed MySQL database.
 
+## Features
+
+Dabba Fund is a shared contribution tracker designed for groups that pool money and need simple, transparent oversight.
+
+- Shared balance overview: each member can see the total fund, the current balance, and who has contributed.
+- Contribution tracking: members can add funds to the shared jar and review their contribution history in the ledger.
+- Purchase proposals: the group can propose purchases, view all pending and approved items, and vote on them.
+- Request workflow: users can submit requests, while admins review and approve or reject pending requests.
+- User authentication: sign up and log in flows secure the group’s data and personalize each member’s view.
+- Responsive dashboard: the web app is built for quick access from desktop and mobile-friendly layouts.
+- Feedback channel: users can send feedback directly from the app header without leaving the dashboard.
+
 ## Local development
 
 Requirements: Node.js 20 or newer and MySQL 8 or compatible.
