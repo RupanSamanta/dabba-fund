@@ -33,7 +33,14 @@ const PurchaseList = ({ purchases, userNames, totalUsers, onVote }: PurchaseList
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1 text-left">
                   <p className="font-semibold text-[#1c1917]">{purchase.description} </p>
-                  <p className="text-sm text-[#766754]">{new Date(purchase.createdAt).toLocaleString()}</p>
+                  <p className="text-sm text-[#766754]">{new Intl.DateTimeFormat("en-GB", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  }).format(new Date(purchase.createdAt))}</p>
                 </div>
 
                 <Badge

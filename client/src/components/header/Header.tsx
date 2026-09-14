@@ -62,7 +62,11 @@ const Header = () => {
         .reduce((sum, transaction) => sum + Math.abs(transaction.amount), 0), [authData?.id, transactions]);
 
     const joinedDate = (profile?.createdAt ?? authData?.createdAt)
-        ? new Date(profile?.createdAt ?? authData?.createdAt ?? "").toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })
+        ? new Intl.DateTimeFormat("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+        }).format(new Date(profile?.createdAt ?? authData?.createdAt ?? ""))
         : "Unknown";
 
     return (

@@ -38,7 +38,14 @@ const RequestCard = ({ request, userName, onDecision }: RequestCardProps) => {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="font-semibold text-[#1c1917]">{displayName}</p>
-          <p className="text-sm text-[#766754]">{requestTypeLabel} · {new Date(request.createdAt).toLocaleString()}</p>
+          <p className="text-sm text-[#766754]">{requestTypeLabel} · {new Intl.DateTimeFormat("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: false,
+          }).format(new Date(request.createdAt))}</p>
         </div>
 
         <Badge
