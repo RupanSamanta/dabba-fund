@@ -1,10 +1,33 @@
 import { BookOpen, ClipboardList, ShoppingBag, Wallet } from "lucide-react"
 import { NavLink } from "react-router-dom"
 import { useAuth } from "@/context/useAuth"
+import { api } from "@/lib/api"
+import { useEffect, useState } from "react"
 import FooterButton from "./FooterButton"
 
 const Footer = () => {
     const { authData } = useAuth()
+    const [hasPendingRequests, setHasPendingRequests] = useState(false)
+
+    useEffect(() => {
+        if (!authData?.isAdmin) return
+
+        const checkPendingRequests = async () => {
+            try {
+                const response = await api.get("/api/fund-requests", {
+                    params: { isAdmin: true, adminId: authData.id, type: "all" },
+                })
+                setHasPendingRequests(response.data.length > 0)
+            } catch (error) {
+                console.error("Failed to check pending requests", error)
+            }
+        }
+
+        void checkPendingRequests()
+        const intervalId = window.setInterval(checkPendingRequests, 30_000)
+
+        return () => window.clearInterval(intervalId)
+    }, [authData?.id, authData?.isAdmin])
 
     const buttonList = [
         { icon: Wallet, label: 'Overview', path: '/' },
@@ -21,7 +44,12 @@ const Footer = () => {
             {buttonList.map((obj) => (
                 <NavLink key={obj.label} end={obj.label === 'Overview'} to={obj.path} className="flex-1">
                     {({ isActive }) => (
-                        <FooterButton Icon={obj.icon} label={obj.label} isActive={isActive} />
+                        <FooterButton
+                            Icon={obj.icon}
+                            label={obj.label}
+                            isActive={isActive}
+                            hasNotification={obj.label === "Requests" && authData?.isAdmin === true && hasPendingRequests}
+                        />
                     )}
                 </NavLink>
             ))}
