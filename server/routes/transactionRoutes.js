@@ -1,6 +1,7 @@
 const express = require("express");
 const crypto = require("crypto");
 const db = require("../db");
+const { sendNewRequestNotification } = require("../lib/requestNotifications");
 
 const router = express.Router();
 
@@ -207,11 +208,14 @@ router.get("/fund-requests", async (req, res) => {
                 return res.status(403).send({ message: "Admin access required." });
             }
 
+            const requestTypeClause = typeFilter === "all" ? "" : "AND type = ?";
+            const requestTypeParams = typeFilter === "all" ? [] : [typeFilter];
             const [rows] = await db.promise().query(
                 `SELECT request_id as requestId, uid as userId, amount, type, status, created_at as createdAt, description, purchase_id as purchaseId
                  FROM requests
-                 WHERE type = 'add_money' AND status = 'pending'
-                 ORDER BY created_at DESC`
+                 WHERE status = 'pending' ${requestTypeClause}
+                 ORDER BY created_at DESC`,
+                requestTypeParams
             );
 
             return res.send(rows);
@@ -272,7 +276,7 @@ router.post("/fund-requests", async (req, res) => {
             await connection.beginTransaction();
 
             const [requesterRows] = await connection.query(
-                "SELECT id, is_admin FROM users WHERE id = ? LIMIT 1",
+                "SELECT id, first_name, last_name, is_admin FROM users WHERE id = ? LIMIT 1",
                 [userId]
             );
             if (!requesterRows.length) {
@@ -320,6 +324,27 @@ router.post("/fund-requests", async (req, res) => {
             }
 
             await connection.commit();
+
+            if (!(requesterIsAdmin && requestType === "add_money")) {
+                void (async () => {
+                    try {
+                        const [adminRows] = await db.promise().query(
+                            "SELECT email FROM users WHERE is_admin = TRUE AND email IS NOT NULL"
+                        );
+
+                        await sendNewRequestNotification({
+                            recipients: adminRows.map((admin) => admin.email),
+                            requesterName: `${requesterRows[0].first_name} ${requesterRows[0].last_name}`,
+                            amount,
+                            type: requestType,
+                            description,
+                        });
+                    } catch (notificationError) {
+                        console.error("Failed to send request notification", notificationError);
+                    }
+                })();
+            }
+
             return res.status(201).send({
                 message: requesterIsAdmin && requestType === "add_money" ? "Fund request approved immediately." : "Request submitted for approval.",
                 requestId,

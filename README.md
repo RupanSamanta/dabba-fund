@@ -66,6 +66,8 @@ Copy `server/.env.example` to `server/.env` or configure the same values in the 
 - `HOST`: bind address, normally `0.0.0.0`
 - `CLIENT_ORIGIN`: allowed frontend origin; multiple origins may be comma-separated
 - `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`: managed MySQL connection settings
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`: SMTP provider settings for new request emails
+- `EMAIL_FROM`: sender address for request notification emails
 
 Never commit `.env` files or place database credentials in frontend variables. `VITE_*` values are public in the browser bundle.
 
