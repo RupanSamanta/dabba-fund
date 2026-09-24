@@ -22,7 +22,7 @@ const LoginPage = () => {
   const navigate = useNavigate()
   const { login } = useAuth()
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     if (!email.trim() || !password.trim()) {

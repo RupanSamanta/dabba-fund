@@ -144,16 +144,10 @@
 }
 
 html {
-  font-size: 13px;
+  font-size: 12px;
 }
 
 @media (min-width: 640px) {
-  html {
-    font-size: 15px;
-  }
-}
-
-@media (min-width: 1024px) {
   html {
     font-size: 14px;
   }
