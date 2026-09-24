@@ -8,13 +8,13 @@ import LoginPage from "./components/auth/LoginPage"
 import SignupPage from "./components/auth/SignupPage"
 import Requests from "./components/requests/Requests"
 import { Navigate, Route, Routes, useLocation } from "react-router-dom"
-import { useAuth } from "./context/useAuth"
 import { Toaster } from "@/components/ui/toast"
+import { useAuth } from "./context/useAuth"
 
 import { Analytics } from "@vercel/analytics/react"
 
 function App() {
-  const { isAuthenticated, authData } = useAuth()
+  const { isAuthenticated } = useAuth()
   const location = useLocation()
   const isAuthRoute = location.pathname === "/login" || location.pathname === "/signup"
 

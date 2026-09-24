@@ -8,7 +8,7 @@ import type { Contributor } from "@/types/contributor"
 import UserProfileDropdown from "./UserProfileDropdown"
 
 const Header = () => {
-    const { authData } = useAuth();
+    const { authData, logout } = useAuth();
     const location = useLocation();
     const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [profile, setProfile] = useState<Contributor | null>(null);
@@ -83,7 +83,7 @@ const Header = () => {
                     </div>
                 </div>
                 <div className="flex flex-col items-end gap-1 text-right">
-                    <UserProfileDropdown authData={authData} totalContributed={totalContributed} joinedDate={joinedDate} />
+                    <UserProfileDropdown authData={authData} logout={logout} totalContributed={totalContributed} joinedDate={joinedDate} />
                 </div>
             </div>
             <div className="relative mt-8 text-left">
